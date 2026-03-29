@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bullseye — UI Preview</title>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Barlow+Condensed:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --gold:       #c8a84b;
+      --gold-dim:   #7a6428;
+      --gold-glow:  rgba(200,168,75,0.15);
+      --blue-hi:    #5bb8ff;
+      --green:      #4cd87a;
+      --yellow:     #f0c040;
+      --red:        #e05555;
+      --white:      #e8eeff;
+      --white-dim:  #9aaac8;
+      --gray:       #5a6880;
+      --bg-deep:    #080a12;
+      --bg-card:    rgba(12,15,26,0.97);
+      --bg-row:     rgba(255,255,255,0.025);
+      --border:     rgba(200,168,75,0.35);
+      --border-dim: rgba(200,168,75,0.1);
+      --key-q:      #1a5fa0;
+      --key-w:      #1a6e30;
+      --key-e:      #8c4a10;
+      --key-r:      #6018a0;
+    }
+
+    body {
+      background: #0b0d18;
+      font-family: 'Rajdhani', sans-serif;
+      display: flex; flex-direction: column; align-items: center;
+      gap: 70px; padding: 60px 40px 100px; min-height: 100vh;
+    }
+
+    .section-label {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 12px; letter-spacing: 3px; color: var(--gray);
+      text-transform: uppercase; margin-bottom: 18px; text-align: center;
+    }
+
+    /* ══ OVERLAY ══ */
+    .overlay-wrap { display: flex; flex-direction: column; align-items: center; }
+    .overlay {
+      width: 360px; background: var(--bg-card);
+      border: 1px solid var(--border); border-radius: 10px; overflow: hidden;
+      box-shadow: 0 0 0 1px var(--border-dim), 0 0 24px var(--gold-glow), 0 8px 32px rgba(0,0,0,0.7);
+      position: relative;
+    }
+    .overlay::before, .overlay::after {
+      content: ''; position: absolute; width: 12px; height: 12px;
+      border-color: var(--gold); border-style: solid; opacity: 0.6;
+    }
+    .overlay::before { top:4px; left:4px; border-width:1px 0 0 1px; }
+    .overlay::after  { bottom:4px; right:4px; border-width:0 1px 1px 0; }
+    .ov-header {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:10px 14px 9px; background:rgba(8,10,18,0.6);
+      border-bottom:1px solid var(--border-dim);
+    }
+    .ov-left { display:flex; align-items:center; gap:7px; }
+    .ov-icon { font-size:15px; }
+    .ov-title { font-family:'Barlow Condensed',sans-serif; font-size:14px; font-weight:700; letter-spacing:2.5px; color:var(--white); text-transform:uppercase; }
+    .ov-champion { font-family:'Barlow Condensed',sans-serif; font-size:13px; font-weight:600; color:var(--blue-hi); }
+    .ov-divider { height:1px; background:linear-gradient(90deg,transparent,var(--gold-dim),transparent); opacity:0.5; }
+    .ov-abilities { padding:4px 0 6px; }
+    .ov-row { display:flex; align-items:center; padding:6px 14px; gap:10px; }
+    .key { width:24px; height:24px; border-radius:5px; display:flex; align-items:center; justify-content:center; font-family:'Barlow Condensed',sans-serif; font-size:12px; font-weight:700; color:#fff; flex-shrink:0; border:1px solid rgba(255,255,255,0.15); }
+    .key.q{background:var(--key-q);} .key.w{background:var(--key-w);} .key.e{background:var(--key-e);} .key.r{background:var(--key-r);}
+    .ov-name { flex:1; font-size:13px; font-weight:500; color:var(--white-dim); }
+    .ov-stats { display:flex; align-items:center; gap:8px; }
+    .ov-fraction { font-size:12px; font-weight:500; color:var(--white); min-width:36px; text-align:right; }
+    .ov-pct { font-family:'Barlow Condensed',sans-serif; font-size:14px; font-weight:700; min-width:44px; text-align:right; }
+    .pct-green{color:var(--green);} .pct-yellow{color:var(--yellow);} .pct-red{color:var(--red);}
+    .ov-used { font-size:12px; color:var(--gray); min-width:52px; text-align:right; }
+    .ov-used span { color:var(--white-dim); font-weight:600; }
+    .ov-sep { height:1px; margin:0 14px; background:rgba(255,255,255,0.04); }
+    .ov-footer { display:flex; justify-content:space-between; align-items:center; padding:5px 14px 7px; border-top:1px solid rgba(255,255,255,0.04); }
+    .ov-footer-label { font-family:'Barlow Condensed',sans-serif; font-size:10px; letter-spacing:1.5px; color:var(--gray); text-transform:uppercase; }
+    .ov-hotkey { font-family:'Barlow Condensed',sans-serif; font-size:10px; color:var(--gray); }
+    .ov-hotkey kbd { background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.1); border-radius:3px; padding:1px 5px; font-size:9px; font-family:inherit; color:var(--white-dim); }
+
+    /* ══ POST-GAME ══ */
+    .postgame-wrap { display:flex; flex-direction:column; align-items:center; width:100%; }
+    .postgame {
+      width:1400px; height:1000px; background:var(--bg-card);
+      border:1px solid var(--border); border-radius:16px; overflow:hidden;
+      box-shadow:0 0 0 1px var(--border-dim),0 0 50px var(--gold-glow),0 20px 70px rgba(0,0,0,0.85);
+      display:flex; flex-direction:column; position:relative;
+    }
+    .postgame::before,.postgame::after {
+      content:''; position:absolute; width:22px; height:22px;
+      border-color:var(--gold); border-style:solid; opacity:0.45; z-index:10;
+    }
+    .postgame::before{top:8px;left:8px;border-width:1px 0 0 1px;}
+    .postgame::after{bottom:8px;right:8px;border-width:0 1px 1px 0;}
+
+    .pg-header {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:20px 36px 18px; background:rgba(8,10,18,0.7);
+      border-bottom:1px solid var(--border-dim); flex-shrink:0;
+    }
+    .pg-header-left { display:flex; align-items:center; gap:14px; }
+    .pg-icon { font-size:26px; }
+    .pg-title { font-family:'Barlow Condensed',sans-serif; font-size:24px; font-weight:700; letter-spacing:4px; color:var(--white); text-transform:uppercase; }
+    .pg-subtitle { font-family:'Barlow Condensed',sans-serif; font-size:12px; letter-spacing:2px; color:var(--gray); text-transform:uppercase; margin-top:2px; }
+    .pg-header-right { display:flex; flex-direction:column; align-items:flex-end; gap:4px; }
+    .pg-player { font-family:'Barlow Condensed',sans-serif; font-size:20px; font-weight:600; color:var(--blue-hi); }
+    .pg-champion { font-family:'Barlow Condensed',sans-serif; font-size:13px; color:var(--gray); }
+    .pg-divider { height:1px; background:linear-gradient(90deg,transparent,var(--gold-dim),transparent); opacity:0.45; flex-shrink:0; }
+
+    .pg-body {
+      flex:1; display:grid;
+      grid-template-columns:1fr 1fr;
+      grid-template-rows:1fr 1fr;
+      gap:1px; background:rgba(255,255,255,0.035); overflow:hidden;
+    }
+
+    .pg-card { background:var(--bg-deep); padding:22px 28px; display:flex; flex-direction:column; overflow:hidden; }
+    .pg-card-title {
+      font-family:'Barlow Condensed',sans-serif; font-size:12px; font-weight:600;
+      letter-spacing:3px; color:var(--gold); text-transform:uppercase; opacity:0.85;
+      padding-bottom:10px; border-bottom:1px solid var(--border-dim); flex-shrink:0;
+      margin-bottom:0;
+    }
+
+    /* ── CARD 1: This Match ── */
+    .ab-section { flex:1; display:flex; flex-direction:column; }
+
+    .ab-rows { display:flex; flex-direction:column; gap:14px; padding:18px 0 14px; flex:1; justify-content:center; }
+    .ab-row { display:flex; align-items:center; gap:14px; }
+    .ab-key {
+      width:32px; height:32px; border-radius:6px;
+      display:flex; align-items:center; justify-content:center;
+      font-family:'Barlow Condensed',sans-serif; font-size:15px; font-weight:700; color:#fff; flex-shrink:0;
+      border:1px solid rgba(255,255,255,0.12);
+    }
+    .ab-key.q{background:var(--key-q);} .ab-key.w{background:var(--key-w);}
+    .ab-key.e{background:var(--key-e);} .ab-key.r{background:var(--key-r);}
+    .ab-name { flex:1; font-size:17px; font-weight:500; color:var(--white-dim); }
+    .ab-fraction { font-size:16px; font-weight:600; color:var(--white); min-width:54px; text-align:right; }
+    .ab-bar-wrap { width:130px; height:6px; background:rgba(255,255,255,0.07); border-radius:3px; overflow:hidden; }
+    .ab-bar { height:100%; border-radius:3px; }
+    .bar-green{background:var(--green);} .bar-yellow{background:var(--yellow);}
+    .ab-pct { font-family:'Barlow Condensed',sans-serif; font-size:22px; font-weight:700; min-width:60px; text-align:right; }
+    .ab-used-txt { font-size:15px; color:var(--gray); min-width:80px; text-align:right; }
+    .ab-used-txt span { color:var(--white-dim); font-weight:600; }
+
+    /* Histórico promedio al final de Card 1 */
+    .ab-history-avg {
+      border-top:1px solid rgba(255,255,255,0.06);
+      padding-top:12px;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      flex-shrink:0;
+    }
+    .ab-history-avg-title {
+      font-family:'Barlow Condensed',sans-serif;
+      font-size:10px; letter-spacing:2px; color:var(--gray); text-transform:uppercase;
+    }
+    .ab-avg-row {
+      display:flex; align-items:center; gap:12px;
+    }
+    .ab-avg-key {
+      width:20px; height:20px; border-radius:4px;
+      display:flex; align-items:center; justify-content:center;
+      font-family:'Barlow Condensed',sans-serif; font-size:10px; font-weight:700; color:#fff; flex-shrink:0;
+    }
+    .ab-avg-key.q{background:var(--key-q);} .ab-avg-key.w{background:var(--key-w);}
+    .ab-avg-key.e{background:var(--key-e);} .ab-avg-key.r{background:var(--key-r);}
+    .ab-avg-name { flex:1; font-size:13px; color:var(--gray); }
+    .ab-avg-bar-wrap { width:100px; height:4px; background:rgba(255,255,255,0.07); border-radius:2px; overflow:hidden; }
+    .ab-avg-bar { height:100%; border-radius:2px; }
+    .ab-avg-pct { font-family:'Barlow Condensed',sans-serif; font-size:15px; font-weight:700; min-width:46px; text-align:right; }
+    .ab-avg-used { font-size:12px; color:var(--gray); min-width:60px; text-align:right; }
+    .ab-avg-used span { color:var(--white-dim); font-weight:600; }
+
+    /* ── CARD 2: Last 5 Matches ── */
+    /* Grid: num | Q col | Q% | E col | E% | R col | R% */
+    .history-table { display:flex; flex-direction:column; gap:0; flex:1; margin-top:14px; }
+
+    .hist-col-header {
+      display:grid;
+      grid-template-columns: 26px 1fr 64px 1fr 64px 1fr 64px;
+      align-items:end;
+      padding:0 0 8px 0;
+      border-bottom:1px solid rgba(255,255,255,0.07);
+      margin-bottom:2px;
+      gap:0;
+    }
+    .hist-col-label {
+      font-family:'Barlow Condensed',sans-serif;
+      font-size:12px; font-weight:600; letter-spacing:1px; color:var(--white-dim);
+      text-transform:uppercase; padding-left:10px;
+    }
+    .hist-col-label-pct {
+      font-family:'Barlow Condensed',sans-serif;
+      font-size:11px; color:var(--gray); text-align:center; letter-spacing:0.5px;
+    }
+
+    .hist-row {
+      display:grid;
+      grid-template-columns: 26px 1fr 64px 1fr 64px 1fr 64px;
+      align-items:center;
+      padding:12px 0;
+      border-bottom:1px solid rgba(255,255,255,0.04);
+      gap:0;
+    }
+    .hist-row:last-child { border-bottom:none; }
+
+    .hist-num {
+      font-family:'Barlow Condensed',sans-serif;
+      font-size:12px; color:var(--gray); text-align:center;
+    }
+
+    .hist-cell {
+      display:flex; flex-direction:column; gap:5px;
+      padding:0 12px;
+      border-left:1px solid rgba(255,255,255,0.04);
+    }
+    .hist-cell-bar { height:5px; background:rgba(255,255,255,0.07); border-radius:3px; overflow:hidden; }
+    .hist-cell-fill { height:100%; border-radius:3px; }
+    .hist-frac {
+      font-family:'Barlow Condensed',sans-serif;
+      font-size:13px; color:var(--white-dim);
+    }
+
+    .hist-pct-cell {
+      text-align:center;
+      padding:0 4px;
+    }
+    .hist-pct-val {
+      font-family:'Barlow Condensed',sans-serif;
+      font-size:22px; font-weight:700; line-height:1;
+    }
+
+    /* W separada — fila especial al pie */
+    .hist-w-row {
+      display:flex; align-items:center; gap:0;
+      padding:10px 0 0;
+      border-top:1px solid rgba(255,255,255,0.04);
+      margin-top:4px;
+    }
+    .hist-w-label-col {
+      width:26px;
+      font-family:'Barlow Condensed',sans-serif; font-size:11px; color:var(--gray); text-align:center;
+    }
+    .hist-w-entries {
+      flex:1; display:flex; gap:0;
+    }
+    .hist-w-entry {
+      display:flex; align-items:center; gap:8px;
+      padding:0 12px;
+      border-left:1px solid rgba(255,255,255,0.04);
+      flex:1;
+    }
+    .hist-w-key {
+      font-family:'Barlow Condensed',sans-serif; font-size:10px; font-weight:700; color:#fff;
+      width:17px; height:17px; border-radius:3px; background:var(--key-w);
+      display:flex; align-items:center; justify-content:center; flex-shrink:0;
+    }
+    .hist-w-name { font-family:'Barlow Condensed',sans-serif; font-size:11px; color:var(--gray); flex:1; }
+    .hist-w-val {
+      font-family:'Barlow Condensed',sans-serif;
+      font-size:16px; font-weight:700; color:var(--white-dim);
+    }
+    .hist-w-used-label { font-family:'Barlow Condensed',sans-serif; font-size:10px; color:var(--gray); }
+
+    /* ── CARD 3: Rank ── */
+    .rank-section { display:flex; flex-direction:column; gap:18px; flex:1; justify-content:center; margin-top:14px; }
+    .rank-row { display:flex; flex-direction:column; gap:7px; }
+    .rank-label-row { display:flex; justify-content:space-between; align-items:center; }
+    .rank-label { font-size:15px; font-weight:500; color:var(--white-dim); }
+    .rank-val { font-family:'Barlow Condensed',sans-serif; font-size:22px; font-weight:700; }
+    .rank-track { height:7px; background:rgba(255,255,255,0.07); border-radius:4px; overflow:hidden; }
+    .rank-fill { height:100%; border-radius:4px; }
+    .rank-badge { display:inline-flex; align-items:center; background:rgba(255,255,255,0.05); border:1px solid var(--border-dim); border-radius:4px; padding:2px 9px; }
+    .rank-badge-text { font-family:'Barlow Condensed',sans-serif; font-size:11px; letter-spacing:1px; text-transform:uppercase; }
+    .rank-diff { font-family:'Barlow Condensed',sans-serif; font-size:12px; text-align:right; }
+    .rank-diff.above { color:var(--green); }
+
+    /* ── CARD 4: Global ── */
+    .global-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; flex:1; margin-top:14px; }
+    .global-stat { background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:16px 18px; display:flex; flex-direction:column; gap:5px; }
+    .global-champ { font-family:'Barlow Condensed',sans-serif; font-size:16px; font-weight:700; color:var(--blue-hi); }
+    .global-ability { font-size:13px; color:var(--gray); }
+    .global-pct { font-family:'Barlow Condensed',sans-serif; font-size:36px; font-weight:700; color:var(--white); line-height:1; margin-top:4px; }
+    .global-label { font-family:'Barlow Condensed',sans-serif; font-size:10px; letter-spacing:1.5px; color:var(--gray); text-transform:uppercase; }
+    .global-bar-wrap { height:5px; background:rgba(255,255,255,0.06); border-radius:3px; margin-top:6px; overflow:hidden; }
+    .global-bar { height:100%; border-radius:3px; }
+
+    /* FOOTER */
+    .pg-footer {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:13px 36px; border-top:1px solid var(--border-dim); flex-shrink:0;
+      background:rgba(8,10,18,0.5);
+    }
+    .pg-footer-note { font-family:'Barlow Condensed',sans-serif; font-size:11px; letter-spacing:1.5px; color:var(--gray); text-transform:uppercase; }
+    .pg-disclaimer { font-family:'Barlow Condensed',sans-serif; font-size:10px; color:#28344a; max-width:600px; text-align:right; line-height:1.5; }
+  </style>
+</head>
+<body>
+
+  <!-- ══ OVERLAY ══ -->
+  <div class="overlay-wrap">
+    <div class="section-label">In-Game Overlay — 360px</div>
+    <div class="overlay">
+      <div class="ov-header">
+        <div class="ov-left"><span class="ov-icon">🎯</span><span class="ov-title">Bullseye</span></div>
+        <span class="ov-champion">Blitzcrank</span>
+      </div>
+      <div class="ov-divider"></div>
+      <div class="ov-abilities">
+        <div class="ov-row">
+          <div class="key q">Q</div><span class="ov-name">Rocket Grab</span>
+          <div class="ov-stats"><span class="ov-fraction">17/20</span><span class="ov-pct pct-green">85%</span></div>
+        </div>
+        <div class="ov-sep"></div>
+        <div class="ov-row">
+          <div class="key w">W</div><span class="ov-name">Overdrive</span>
+          <div class="ov-stats"><span class="ov-used"><span>8x</span> used</span></div>
+        </div>
+        <div class="ov-sep"></div>
+        <div class="ov-row">
+          <div class="key e">E</div><span class="ov-name">Power Fist</span>
+          <div class="ov-stats"><span class="ov-fraction">15/20</span><span class="ov-pct pct-green">75%</span></div>
+        </div>
+        <div class="ov-sep"></div>
+        <div class="ov-row">
+          <div class="key r">R</div><span class="ov-name">Static Field</span>
+          <div class="ov-stats"><span class="ov-fraction">12/12</span><span class="ov-pct pct-green">100%</span></div>
+        </div>
+      </div>
+      <div class="ov-footer">
+        <span class="ov-footer-label">Current Match</span>
+        <span class="ov-hotkey">Toggle <kbd>Alt+B</kbd></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ POST-GAME ══ -->
+  <div class="postgame-wrap">
+    <div class="section-label">Post-Game Screen — 1400×1000</div>
+    <div class="postgame">
+
+      <div class="pg-header">
+        <div class="pg-header-left">
+          <span class="pg-icon">🎯</span>
+          <div><div class="pg-title">Bullseye</div><div class="pg-subtitle">Match Summary — Prototype</div></div>
+        </div>
+        <div class="pg-header-right">
+          <span class="pg-player">SummonerName</span>
+          <span class="pg-champion">Blitzcrank · Ranked Solo/Duo · Gold II</span>
+        </div>
+      </div>
+      <div class="pg-divider"></div>
+
+      <div class="pg-body">
+
+        <!-- CARD 1 — This Match + Historical Avg -->
+        <div class="pg-card">
+          <div class="pg-card-title">This Match</div>
+          <div class="ab-section">
+
+            <!-- Partida actual -->
+            <div class="ab-rows">
+              <div class="ab-row">
+                <div class="ab-key q">Q</div><span class="ab-name">Rocket Grab</span>
+                <span class="ab-fraction">17/20</span>
+                <div class="ab-bar-wrap"><div class="ab-bar bar-green" style="width:85%"></div></div>
+                <span class="ab-pct pct-green">85%</span>
+              </div>
+              <div class="ab-row">
+                <div class="ab-key w">W</div><span class="ab-name">Overdrive</span>
+                <span class="ab-used-txt"><span>8x</span> used</span>
+              </div>
+              <div class="ab-row">
+                <div class="ab-key e">E</div><span class="ab-name">Power Fist</span>
+                <span class="ab-fraction">15/20</span>
+                <div class="ab-bar-wrap"><div class="ab-bar bar-green" style="width:75%"></div></div>
+                <span class="ab-pct pct-green">75%</span>
+              </div>
+              <div class="ab-row">
+                <div class="ab-key r">R</div><span class="ab-name">Static Field</span>
+                <span class="ab-fraction">12/12</span>
+                <div class="ab-bar-wrap"><div class="ab-bar bar-green" style="width:100%"></div></div>
+                <span class="ab-pct pct-green">100%</span>
+              </div>
+            </div>
+
+            <!-- Promedio histórico últimas partidas -->
+            <div class="ab-history-avg">
+              <span class="ab-history-avg-title">Last 5 Matches — Average Accuracy</span>
+              <div class="ab-avg-row">
+                <div class="ab-avg-key q">Q</div>
+                <span class="ab-avg-name">Rocket Grab</span>
+                <div class="ab-avg-bar-wrap"><div class="ab-avg-bar bar-green" style="width:74%"></div></div>
+                <span class="ab-avg-pct pct-green">74%</span>
+              </div>
+              <div class="ab-avg-row">
+                <div class="ab-avg-key w">W</div>
+                <span class="ab-avg-name">Overdrive</span>
+                <span class="ab-avg-used"><span>8.6x</span> avg used</span>
+              </div>
+              <div class="ab-avg-row">
+                <div class="ab-avg-key e">E</div>
+                <span class="ab-avg-name">Power Fist</span>
+                <div class="ab-avg-bar-wrap"><div class="ab-avg-bar bar-green" style="width:76%"></div></div>
+                <span class="ab-avg-pct pct-green">76%</span>
+              </div>
+              <div class="ab-avg-row">
+                <div class="ab-avg-key r">R</div>
+                <span class="ab-avg-name">Static Field</span>
+                <div class="ab-avg-bar-wrap"><div class="ab-avg-bar bar-green" style="width:78%"></div></div>
+                <span class="ab-avg-pct pct-green">78%</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- CARD 2 — Last 5 Matches sin W -->
+        <div class="pg-card">
+          <div class="pg-card-title">Last 5 Matches — Blitzcrank · Per-Ability Accuracy</div>
+          <div class="history-table">
+
+            <!-- HEADER COLUMNAS -->
+            <div class="hist-col-header">
+              <span></span>
+              <span class="hist-col-label">Q — Rocket Grab</span>
+              <span class="hist-col-label-pct">%</span>
+              <span class="hist-col-label">E — Power Fist</span>
+              <span class="hist-col-label-pct">%</span>
+              <span class="hist-col-label">R — Static Field</span>
+              <span class="hist-col-label-pct">%</span>
+            </div>
+
+            <!-- MATCH 1 -->
+            <div class="hist-row">
+              <span class="hist-num">1</span>
+              <div class="hist-cell">
+                <div class="hist-cell-bar"><div class="hist-cell-fill bar-green" style="width:83%"></div></div>
+                <span class="hist-frac">80/96</span>
+              </div>
+              <div class="hist-pct-cell"><span class="hist-pct-val pct-green">83%</span></div>
+              <div class="hist-cell">
+                <div class="hist-cell-bar"><div class="hist-cell-fill bar-green" style="width:78%"></div></div>
+                <span class="hist-frac">18/23</span>
+              </div>
+              <div class="hist-pct-cell"><span class="hist-pct-val pct-green">78%</span></div>
+              <div class="hist-cell">
+                <div class="hist-cell-bar"><div class="hist-cell-fill bar-green" style="width:100%"></div></div>
+                <span class="hist-frac">14/14</span>
+              </div>
+              <div class="hist-pct-cell"><span class="hist-pct-val pct-green">100%</span></div>
+            </div>
+
+            <!-- MATCH 2 -->
+            <div class="hist-row">
+              <span class="hist-num">2</span>
+              <div class="hist-cell">
+                <div class="hist-cell-bar"><div class="hist-cell-fill bar-yellow" style="width:58%"></div></div>
+                <span class="hist-frac">52/90</span>
+              </div>
+              <div class="hist-pct-cell"><span class="hist-pct-val pct-yellow">58%</span></div>
+              <div class="hist-cell">
+                <div class="hist-cell-bar"><div class="hist-cell-fill bar-yellow" style="width:62%"></div></div>
+                <span class="hist-frac">13/21</span>
+              </div>
+              <div class="hist-pct-cell"><span class="hist-pct-val pct-yellow">62%</span></div>
+              <div class="hist-cell">
+                <div class="hist-cell-bar"><div class="hist-cell-fill bar-yellow" style="width:67%"></div></div>
+                <span class="hist-frac">8/12</span>
+              </div>
+              <div class="hist-pct-cell"><span class="hist-pct-val pct-yellow">67%</span></div>
+            </div>
+
+            <!-- MATCH 3 -->
+            <div class="hist-row">
+              <span class="hist-num">3</span>
+              <div class="hist-cell">
+                <div class="hist-cell-bar"><div class="hist-cell-fill bar-green" style="width:75%"></div></div>
+                <span class="hist-frac">69/92</span>
+              </div>
+              <div class="hist-pct-cell"><span class="hist-pct-val pct-green">75%</span></div>
+              <div class="hist-cell">
+                <div class="hist-cell-bar"><div class="hist-cell-fill bar-green" style="width:88%"></div></div>
+                <span class="hist-frac">22/25</span>
+              </div>
+              <div class="hist-pct-cell"><span class="hist-pct-val pct-green">88%</span></div>
+              <div class="hist-cell">
+                <div class="hist-cell-bar"><div class="hist-cell-fill bar-green" style="width:82%"></div></div>
+                <span class="hist-frac">11/13</span>
+              </div>
+              <div class="hist-pct-cell"><span class="hist-pct-val pct-green">82%</span></div>
+            </div>
+
+            <!-- MATCH 4 -->
+            <div class="hist-row">
+              <span class="hist-num">4</span>
+              <div class="hist-cell">
+                <div class="hist-cell-bar"><div class="hist-cell-fill" style="background:var(--red);width:38%"></div></div>
+                <span class="hist-frac">28/74</span>
+              </div>
+              <div class="hist-pct-cell"><span class="hist-pct-val pct-red">38%</span></div>
+              <div class="hist-cell">
+                <div class="hist-cell-bar"><div class="hist-cell-fill bar-yellow" style="width:55%"></div></div>
+                <span class="hist-frac">11/20</span>
+              </div>
+              <div class="hist-pct-cell"><span class="hist-pct-val pct-yellow">55%</span></div>
+              <div class="hist-cell">
+                <div class="hist-cell-bar"><div class="hist-cell-fill bar-yellow" style="width:50%"></div></div>
+                <span class="hist-frac">6/12</span>
+              </div>
+              <div class="hist-pct-cell"><span class="hist-pct-val pct-yellow">50%</span></div>
+            </div>
+
+            <!-- MATCH 5 -->
+            <div class="hist-row">
+              <span class="hist-num">5</span>
+              <div class="hist-cell">
+                <div class="hist-cell-bar"><div class="hist-cell-fill bar-green" style="width:78%"></div></div>
+                <span class="hist-frac">72/92</span>
+              </div>
+              <div class="hist-pct-cell"><span class="hist-pct-val pct-green">78%</span></div>
+              <div class="hist-cell">
+                <div class="hist-cell-bar"><div class="hist-cell-fill bar-green" style="width:87%"></div></div>
+                <span class="hist-frac">20/23</span>
+              </div>
+              <div class="hist-pct-cell"><span class="hist-pct-val pct-green">87%</span></div>
+              <div class="hist-cell">
+                <div class="hist-cell-bar"><div class="hist-cell-fill bar-green" style="width:92%"></div></div>
+                <span class="hist-frac">11/12</span>
+              </div>
+              <div class="hist-pct-cell"><span class="hist-pct-val pct-green">92%</span></div>
+            </div>
+
+            <!-- W SEPARADA AL PIE -->
+            <div class="hist-w-row">
+              <span class="hist-w-label-col">W</span>
+              <div class="hist-w-entries">
+                <div class="hist-w-entry">
+                  <div class="hist-w-key">W</div>
+                  <span class="hist-w-name">Overdrive</span>
+                  <span class="hist-w-val">12x</span>
+                  <span class="hist-w-used-label">used</span>
+                </div>
+                <div class="hist-w-entry">
+                  <div class="hist-w-key">W</div>
+                  <span class="hist-w-name">Overdrive</span>
+                  <span class="hist-w-val">7x</span>
+                  <span class="hist-w-used-label">used</span>
+                </div>
+                <div class="hist-w-entry">
+                  <div class="hist-w-key">W</div>
+                  <span class="hist-w-name">Overdrive</span>
+                  <span class="hist-w-val">10x</span>
+                  <span class="hist-w-used-label">used</span>
+                </div>
+                <div class="hist-w-entry">
+                  <div class="hist-w-key">W</div>
+                  <span class="hist-w-name">Overdrive</span>
+                  <span class="hist-w-val">5x</span>
+                  <span class="hist-w-used-label">used</span>
+                </div>
+                <div class="hist-w-entry">
+                  <div class="hist-w-key">W</div>
+                  <span class="hist-w-name">Overdrive</span>
+                  <span class="hist-w-val">9x</span>
+                  <span class="hist-w-used-label">used</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- CARD 3 — Rank Comparison -->
+        <div class="pg-card">
+          <div class="pg-card-title">Your Accuracy vs Rank Average</div>
+          <div class="rank-section">
+            <div class="rank-row">
+              <div class="rank-label-row">
+                <span class="rank-label">You — Q (Rocket Grab)</span>
+                <span class="rank-val pct-green">85%</span>
+              </div>
+              <div class="rank-track"><div class="rank-fill bar-green" style="width:85%"></div></div>
+            </div>
+            <div class="rank-row">
+              <div class="rank-label-row">
+                <div style="display:flex;align-items:center;gap:10px;">
+                  <span class="rank-label">Gold II Average</span>
+                  <div class="rank-badge"><span class="rank-badge-text" style="color:var(--yellow)">Gold II</span></div>
+                </div>
+                <span class="rank-val" style="color:var(--yellow)">42%</span>
+              </div>
+              <div class="rank-track"><div class="rank-fill bar-yellow" style="width:42%"></div></div>
+              <div class="rank-diff above">▲ You are +43% above your rank average</div>
+            </div>
+            <div class="rank-row">
+              <div class="rank-label-row">
+                <div style="display:flex;align-items:center;gap:10px;">
+                  <span class="rank-label">Diamond Average</span>
+                  <div class="rank-badge"><span class="rank-badge-text" style="color:var(--blue-hi)">Diamond</span></div>
+                </div>
+                <span class="rank-val" style="color:var(--blue-hi)">55%</span>
+              </div>
+              <div class="rank-track"><div class="rank-fill" style="background:var(--blue-hi);width:55%"></div></div>
+              <div class="rank-diff above">▲ You are +30% above Diamond average</div>
+            </div>
+            <div class="rank-row">
+              <div class="rank-label-row">
+                <div style="display:flex;align-items:center;gap:10px;">
+                  <span class="rank-label">Challenger Average</span>
+                  <div class="rank-badge"><span class="rank-badge-text" style="color:var(--gold)">Challenger</span></div>
+                </div>
+                <span class="rank-val" style="color:var(--gold)">72%</span>
+              </div>
+              <div class="rank-track"><div class="rank-fill" style="background:var(--gold);width:72%"></div></div>
+              <div class="rank-diff above">▲ You are +13% above Challenger average</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CARD 4 — Global Stats -->
+        <div class="pg-card">
+          <div class="pg-card-title">Global Community Stats — All Players</div>
+          <div class="global-grid">
+            <div class="global-stat">
+              <span class="global-champ">Blitzcrank</span>
+              <span class="global-ability">Q — Rocket Grab</span>
+              <span class="global-pct">40%</span>
+              <span class="global-label">Global avg accuracy</span>
+              <div class="global-bar-wrap"><div class="global-bar bar-yellow" style="width:40%"></div></div>
+            </div>
+            <div class="global-stat">
+              <span class="global-champ">Thresh</span>
+              <span class="global-ability">Q — Death Sentence</span>
+              <span class="global-pct">35%</span>
+              <span class="global-label">Global avg accuracy</span>
+              <div class="global-bar-wrap"><div class="global-bar bar-yellow" style="width:35%"></div></div>
+            </div>
+            <div class="global-stat">
+              <span class="global-champ">Pyke</span>
+              <span class="global-ability">Q — Bone Skewer</span>
+              <span class="global-pct">48%</span>
+              <span class="global-label">Global avg accuracy</span>
+              <div class="global-bar-wrap"><div class="global-bar bar-yellow" style="width:48%"></div></div>
+            </div>
+            <div class="global-stat">
+              <span class="global-champ">Ezreal</span>
+              <span class="global-ability">Q — Mystic Shot</span>
+              <span class="global-pct">62%</span>
+              <span class="global-label">Global avg accuracy</span>
+              <div class="global-bar-wrap"><div class="global-bar bar-green" style="width:62%"></div></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="pg-footer">
+        <span class="pg-footer-note">Bullseye — Landed Skillshot Tracker · Prototype Build</span>
+        <span class="pg-disclaimer">Bullseye isn't endorsed by Riot Games and doesn't reflect the views or opinions of Riot Games or anyone officially involved in producing or managing Riot Games properties. Riot Games and all associated properties are trademarks or registered trademarks of Riot Games, Inc.</span>
+      </div>
+
+    </div>
+  </div>
+
+</body>
+</html>
