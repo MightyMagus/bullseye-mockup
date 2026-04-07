@@ -1,0 +1,1170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Bullseye — Post Game</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+/*
+ ╔══════════════════════════════════════════════════╗
+ ║         BULLSEYE — DESIGN SYSTEM v2              ║
+ ╠══════════════════════════════════════════════════╣
+ ║  #0B0E18  bg deep         #0F1220  bg card       ║
+ ║  #141828  bg row          #1A1C30  border        ║
+ ║  #252840  border hover    #C5A059  gold accent   ║
+ ║  #FFFFFF  white (fracs/counts/names)             ║
+ ║  #22C55E  green ≥70%      #EAB308  yellow 40-69% ║
+ ║  #EF4444  red <40%        #8B5CF6  violet champ  ║
+ ║  #64748B  slate muted     #94A3B8  secondary txt ║
+ ║  Q #3B82F6  W #4ADE80  E #B45309  R #A855F7     ║
+ ╚══════════════════════════════════════════════════╝
+*/
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html,body{width:100vw;height:100vh;overflow:hidden;background:#060810;font-family:'Inter',sans-serif;color:#fff;}
+
+/* ── VIEW SWITCHER ── */
+.view-switcher{
+  position:fixed;top:12px;left:50%;transform:translateX(-50%);
+  z-index:9999;
+  display:flex;gap:4px;
+  background:rgba(11,14,24,0.95);
+  border:1px solid #1A1C30;border-radius:10px;
+  padding:4px;
+  box-shadow:0 4px 20px rgba(0,0,0,0.5);
+}
+.vs-btn{
+  padding:6px 18px;border-radius:7px;
+  font-family:'Inter',sans-serif;font-size:11px;font-weight:700;
+  letter-spacing:1.5px;text-transform:uppercase;
+  cursor:pointer;border:none;transition:all 0.15s;
+  color:#64748B;background:transparent;
+}
+.vs-btn.active{background:#C5A059;color:#0B0E18;}
+.vs-btn:hover:not(.active){color:#fff;}
+
+/* ── OVERLAY PREVIEW SCREEN ── */
+.overlay-screen{
+  display:none;width:100vw;height:100vh;
+  background:#060810;flex-direction:column;
+  align-items:center;overflow-y:auto;
+  padding:0 0 40px;
+}
+.overlay-screen.visible{display:flex;}
+
+/* Hero */
+.ov-hero{
+  display:flex;flex-direction:column;align-items:center;
+  padding:36px 20px 28px;
+  border-bottom:1px solid #1A1C30;
+  width:100%;text-align:center;
+  background:linear-gradient(180deg,rgba(197,160,89,0.04) 0%,transparent 100%);
+}
+.ov-hero-icon{
+  width:52px;height:52px;border-radius:50%;
+  background:linear-gradient(135deg,#C5A059,#8B6830);
+  display:flex;align-items:center;justify-content:center;
+  font-size:24px;margin-bottom:14px;
+  box-shadow:0 4px 20px rgba(197,160,89,0.3);
+}
+.ov-hero-title{
+  font-size:clamp(32px,5vw,56px);font-weight:900;
+  letter-spacing:6px;text-transform:uppercase;color:#fff;
+  line-height:1;margin-bottom:8px;
+}
+.ov-hero-sub{
+  font-size:12px;font-weight:700;letter-spacing:4px;text-transform:uppercase;
+  color:#00c8e0;margin-bottom:10px;
+}
+.ov-hero-desc{
+  font-size:13px;color:#64748B;max-width:460px;line-height:1.7;margin-bottom:16px;
+}
+.ov-hero-tags{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;}
+.ov-tag{
+  font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;
+  padding:4px 12px;border-radius:6px;
+  background:rgba(255,255,255,0.04);border:1px solid #1A1C30;color:#64748B;
+}
+.ov-tag-gold{color:#C5A059;background:rgba(197,160,89,0.08);border-color:rgba(197,160,89,0.25);}
+.ov-tag-dim{color:#3A4060;border-color:#1A1C30;}
+
+/* Tabs */
+.ov-tabs{
+  display:flex;border-bottom:1px solid #1A1C30;
+  width:100%;justify-content:center;
+  flex-shrink:0;
+}
+.ov-tab{
+  padding:14px 28px;font-size:12px;font-weight:700;letter-spacing:2px;
+  text-transform:uppercase;color:#3A4060;cursor:pointer;
+  border-bottom:2px solid transparent;margin-bottom:-1px;
+  transition:all 0.15s;
+}
+.ov-tab:hover{color:#64748B;}
+.ov-tab-active{color:#00c8e0;border-bottom-color:#00c8e0;}
+
+/* Tab content */
+.ov-tab-content{width:100%;max-width:900px;padding:0 20px;}
+.ov-tab-label{
+  text-align:center;font-size:10px;font-weight:600;letter-spacing:2px;
+  text-transform:uppercase;color:#3A4060;padding:16px 0 20px;
+}
+
+/* Split: overlay left + description right */
+.ov-split{display:flex;gap:40px;align-items:flex-start;width:100%;}
+.ov-split-left{display:flex;flex-direction:column;align-items:flex-start;gap:14px;flex-shrink:0;}
+.ov-split-right{flex:1;padding-top:4px;}
+
+/* How it works */
+.ov-how-title{
+  font-size:14px;font-weight:800;letter-spacing:2px;text-transform:uppercase;
+  color:#C5A059;margin-bottom:12px;
+}
+.ov-how-desc{font-size:13px;color:#94A3B8;line-height:1.75;margin-bottom:16px;}
+.ov-how-list{
+  list-style:none;display:flex;flex-direction:column;gap:8px;
+  padding-left:0;margin-bottom:20px;
+  border-top:1px solid #1A1C30;padding-top:16px;
+}
+.ov-how-list li{
+  display:flex;align-items:center;gap:10px;
+  font-size:13px;color:#94A3B8;line-height:1.5;
+}
+.ov-how-list li::before{
+  content:'';width:6px;height:6px;border-radius:50%;
+  background:#00c8e0;flex-shrink:0;
+}
+.ov-color-legend{
+  display:flex;gap:20px;padding:14px 16px;
+  background:#0F1220;border:1px solid #1A1C30;border-radius:10px;
+}
+.ov-cl-item{display:flex;align-items:center;gap:8px;}
+.ov-cl-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.ov-cl-val{font-size:13px;font-weight:800;}
+.ov-cl-lbl{font-size:11px;color:#64748B;}
+
+/* Demo row */
+.ov-demo-row{display:flex;gap:6px;flex-wrap:wrap;}
+
+/* ── OVERLAY PANEL ── */
+.ov-panel{
+  position:relative;z-index:10;
+  width:300px;
+  background:#0B0E18;
+  border:1px solid #1A1C30;
+  border-radius:16px;
+  overflow:visible;
+  box-shadow:
+    0 0 0 1px rgba(197,160,89,0.1),
+    0 24px 60px rgba(0,0,0,0.7),
+    0 8px 24px rgba(0,0,0,0.5);
+}
+/* Gold corner brackets */
+.ov-panel::before,.ov-panel::after{content:'';position:absolute;width:14px;height:14px;pointer-events:none;}
+.ov-panel::before{top:0;left:0;border-top:2px solid rgba(197,160,89,0.7);border-left:2px solid rgba(197,160,89,0.7);border-radius:16px 0 0 0;}
+.ov-panel::after{bottom:0;right:0;border-bottom:2px solid rgba(197,160,89,0.7);border-right:2px solid rgba(197,160,89,0.7);border-radius:0 0 16px 0;}
+
+/* Header */
+.ov-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:11px 14px 10px;
+  border-bottom:1px solid #1A1C30;
+}
+.ov-brand{display:flex;align-items:center;gap:8px;}
+.ov-logo{
+  width:26px;height:26px;border-radius:7px;
+  background:linear-gradient(135deg,#C5A059,#8B6830);
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;flex-shrink:0;
+  box-shadow:0 2px 8px rgba(197,160,89,0.3);
+}
+.ov-name{font-size:12px;font-weight:900;letter-spacing:2.5px;text-transform:uppercase;color:#fff;}
+.ov-champ{font-size:12px;font-weight:700;color:#8B5CF6;letter-spacing:0.3px;}
+
+/* Ability rows */
+.ov-abilities{padding:9px 11px;display:flex;flex-direction:column;gap:5px;}
+.ov-ab{
+  display:flex;align-items:center;gap:8px;
+  padding:7px 9px;border-radius:9px;
+  background:#141828;border:1px solid #1A1C30;
+  transition:border-color 0.15s;
+}
+.ov-ab:hover{border-color:#252840;}
+.ov-key{
+  width:26px;height:26px;border-radius:7px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:800;color:#fff;flex-shrink:0;
+}
+.ov-name-txt{flex:1;font-size:12px;font-weight:600;color:#fff;white-space:nowrap;}
+.ov-frac{font-size:12px;font-weight:700;color:#fff;flex-shrink:0;min-width:34px;text-align:right;}
+.ov-barw{width:48px;height:4px;background:rgba(255,255,255,0.08);border-radius:2px;overflow:hidden;flex-shrink:0;}
+.ov-bar{height:100%;border-radius:2px;}
+.ov-pct{font-size:16px;font-weight:800;min-width:44px;text-align:right;flex-shrink:0;letter-spacing:-0.3px;}
+.ov-used{font-size:12px;font-weight:700;color:#fff;min-width:52px;text-align:right;flex-shrink:0;}
+
+/* Footer */
+.ov-footer{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 14px 11px;
+  border-top:1px solid #1A1C30;
+}
+.ov-footer-lbl{font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#64748B;}
+.ov-toggle{font-size:9px;font-weight:500;color:#64748B;display:flex;align-items:center;gap:5px;}
+.ov-kbd{
+  font-size:9px;font-weight:700;letter-spacing:0.5px;
+  color:#C5A059;background:rgba(197,160,89,0.1);
+  border:1px solid rgba(197,160,89,0.25);
+  padding:2px 6px;border-radius:4px;
+}
+
+/* Minimize state */
+.ov-panel.minimized .ov-abilities,.ov-panel.minimized .ov-footer{display:none;}
+.ov-panel.minimized{width:auto;}
+.ov-panel.minimized .ov-header{border-bottom:none;}
+
+/* Position hint */
+.ov-pos-hint{
+  position:absolute;
+  font-size:10px;font-weight:600;letter-spacing:1px;
+  color:rgba(197,160,89,0.5);text-transform:uppercase;
+  pointer-events:none;
+}
+
+/* Accuracy colors for overlay */
+.ov-green{color:#22C55E;} .ov-yellow{color:#EAB308;} .ov-red{color:#EF4444;}
+.ov-bar-green{background:#22C55E;} .ov-bar-yellow{background:#EAB308;}
+
+/* Demo controls */
+.demo-controls{
+  position:absolute;bottom:28px;left:50%;transform:translateX(-50%);
+  display:flex;gap:8px;z-index:20;
+}
+.demo-btn{
+  padding:7px 16px;border-radius:8px;
+  font-family:'Inter',sans-serif;font-size:10px;font-weight:700;
+  letter-spacing:1.5px;text-transform:uppercase;
+  cursor:pointer;border:1px solid #1A1C30;
+  background:rgba(11,14,24,0.9);color:#64748B;
+  transition:all 0.15s;
+}
+.demo-btn:hover{border-color:#252840;color:#fff;}
+.demo-btn.active-demo{border-color:rgba(197,160,89,0.4);color:#C5A059;background:rgba(197,160,89,0.07);}
+
+/* Overlay position variants */
+.ov-wrap{position:relative;flex-shrink:0;}
+.ov-wrap .ov-pos-hint{bottom:-20px;left:0;font-size:9px;}
+
+/* ── APP SHELL — 1920×1080, scaled by JS ── */
+.app{
+  width:1920px;height:1080px;
+  transform-origin:top left;
+  background:#060810;
+  display:flex;flex-direction:column;
+  overflow:hidden;
+  position:relative;
+}
+
+/* ── TOPBAR ── */
+.topbar{flex-shrink:0;height:54px;background:#0B0E18;border-bottom:1px solid #1A1C30;padding:0 22px;display:flex;align-items:center;gap:14px;}
+.tb-logo{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,#C5A059,#8B6830);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;box-shadow:0 2px 10px rgba(197,160,89,0.3);}
+.tb-brand{font-size:15px;font-weight:900;letter-spacing:3px;text-transform:uppercase;color:#fff;margin-right:6px;}
+.tb-sub{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#64748B;margin-right:18px;}
+.tb-div{width:1px;height:26px;background:#1A1C30;}
+.tb-champ{display:flex;align-items:center;gap:8px;}
+.tb-cico{width:28px;height:28px;border-radius:6px;overflow:hidden;border:1px solid #252840;background:#141828;flex-shrink:0;}
+.tb-cico img{width:100%;height:100%;object-fit:cover;display:block;}
+.tb-cname{font-size:14px;font-weight:700;color:#8B5CF6;}
+.tb-crole{font-size:10px;color:#64748B;margin-top:1px;}
+.tb-right{margin-left:auto;display:flex;align-items:center;gap:12px;}
+.tb-result{font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;padding:4px 12px;border-radius:6px;background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.28);color:#22C55E;}
+.tb-player{font-size:14px;font-weight:700;color:#8B5CF6;text-align:right;}
+.tb-pdetail{font-size:10px;color:#64748B;text-align:right;margin-top:1px;}
+
+/* ── LAYOUT ── */
+/* App = 1920×1080. Topbar = 54px. Disc = 18px. Padding v = 20px.
+   Content height = 1080 - 54 - 18 - 20 = 988px */
+.content{
+  height:988px;
+  padding:12px 14px 8px;
+  display:flex;
+  flex-direction:row;
+  gap:12px;
+}
+.grid22{
+  flex:1;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  grid-template-rows:1fr 1fr;
+  gap:12px;
+  min-width:0;
+}
+/* Ad col: fixed 312px wide, fills full content height */
+.ad-col{
+  width:312px;
+  height:988px;
+  flex-shrink:0;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+/* ad-card 300×250: head 30px + slot ~280px = 310px */
+/* ad-card 300×100: head 30px + slot ~110px = 140px */
+/* ad-note: ~52px */
+/* gaps: 3×12 = 36px */
+/* Total fixed = 310+140+52+36 = 538px → ad-flex = 988-538 = 450px */
+.ad-flex{
+  height:450px;
+  flex-shrink:0;
+  background:#0F1220;
+  border:1px solid #1A1C30;
+  border-radius:14px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-direction:column;
+  gap:10px;
+  position:relative;
+  overflow:hidden;
+}
+
+/* ── CARD ── */
+.card{background:#0F1220;border:1px solid #1A1C30;border-radius:16px;overflow:hidden;display:flex;flex-direction:column;position:relative;}
+.card::before,.card::after{content:'';position:absolute;width:13px;height:13px;pointer-events:none;}
+.card::before{top:0;left:0;border-top:2px solid rgba(197,160,89,0.6);border-left:2px solid rgba(197,160,89,0.6);border-radius:16px 0 0 0;}
+.card::after{bottom:0;right:0;border-bottom:2px solid rgba(197,160,89,0.6);border-right:2px solid rgba(197,160,89,0.6);border-radius:0 0 16px 0;}
+.ch{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:8px 14px;background:#0B0E18;border-bottom:1px solid #1A1C30;}
+.ct{font-size:10px;font-weight:800;letter-spacing:2.5px;color:#C5A059;text-transform:uppercase;display:flex;align-items:center;gap:6px;}
+.cdot{width:5px;height:5px;border-radius:50%;background:#C5A059;flex-shrink:0;}
+.cs{font-size:10px;color:#64748B;font-weight:600;letter-spacing:1px;text-transform:uppercase;}
+
+/* ── KEYS ── */
+.key{border-radius:7px;display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;flex-shrink:0;letter-spacing:0;}
+.key-lg{width:28px;height:28px;font-size:12px;border-radius:7px;}
+.key-md{width:22px;height:22px;font-size:10px;border-radius:5px;}
+.key-sm{width:17px;height:17px;font-size:8px;border-radius:4px;}
+.kq{background:#3B82F6;} .kw{background:#4ADE80;color:#052e16;} .ke{background:#B45309;} .kr{background:#A855F7;}
+/* accuracy colors */
+.pg{color:#22C55E;} .py{color:#EAB308;} .pr{color:#EF4444;}
+.bg{background:#22C55E;} .by{background:#EAB308;}
+
+/* ══════════════════════════════════════
+   TOP LEFT — THIS MATCH
+   Equal split: abilities (flex:1) + avg (flex:1)
+══════════════════════════════════════ */
+.tm-body{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.tm-abilities{flex:1;padding:10px 12px 8px;display:flex;flex-direction:column;gap:5px;overflow:hidden;}
+.ab{display:flex;align-items:center;gap:9px;padding:7px 10px;border-radius:10px;background:#141828;border:1px solid #1A1C30;flex-shrink:0;}
+.ab:hover{border-color:#252840;}
+.an{flex:1;font-size:13px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.af{font-size:13px;font-weight:700;color:#fff;min-width:38px;text-align:right;flex-shrink:0;}
+.abw{width:70px;height:4px;background:#1A1C30;border-radius:2px;overflow:hidden;flex-shrink:0;}
+.ab-bar{height:100%;border-radius:2px;}
+.ap{font-size:20px;font-weight:800;min-width:54px;text-align:right;flex-shrink:0;letter-spacing:-0.3px;}
+.au{font-size:13px;color:#fff;min-width:58px;text-align:right;flex-shrink:0;font-weight:700;}
+
+.tm-avg{flex:1;padding:8px 12px 10px;border-top:1px solid #1A1C30;display:flex;flex-direction:column;overflow:hidden;}
+.avg-lbl{font-size:9px;letter-spacing:2px;color:#64748B;text-transform:uppercase;font-weight:700;margin-bottom:6px;flex-shrink:0;}
+.avg-rows{flex:1;display:flex;flex-direction:column;justify-content:space-evenly;}
+.avgr{display:flex;align-items:center;gap:8px;}
+.avgn{flex:1;font-size:12px;color:#94A3B8;font-weight:500;}
+.avgbw{width:70px;height:3px;background:#1A1C30;border-radius:2px;overflow:hidden;flex-shrink:0;}
+.avgb{height:100%;border-radius:2px;}
+.avgp{font-size:15px;font-weight:800;min-width:38px;text-align:right;flex-shrink:0;}
+.avgu{font-size:12px;color:#fff;min-width:52px;text-align:right;flex-shrink:0;font-weight:700;}
+
+.sbtn{display:flex;align-items:center;justify-content:center;gap:6px;margin:0 12px 10px;padding:8px;flex-shrink:0;background:rgba(197,160,89,0.07);border:1px solid rgba(197,160,89,0.22);border-radius:8px;cursor:pointer;transition:background 0.2s;font-size:10px;letter-spacing:2px;font-weight:800;color:#C5A059;text-transform:uppercase;}
+.sbtn:hover{background:rgba(197,160,89,0.14);}
+
+/* ══════════════════════════════════════
+   TOP RIGHT — LAST 5 MATCHES
+   Column-based layout with dividers
+══════════════════════════════════════ */
+.m5-body{flex:1;display:flex;flex-direction:column;overflow:hidden;padding:0 0 10px;}
+
+/* Header row — keys + ability names aligned to columns */
+.m5-header{
+  display:grid;
+  grid-template-columns:100px 1fr 1fr 1fr 1fr;
+  gap:0;
+  padding:8px 12px 6px;
+  flex-shrink:0;
+  border-bottom:1px solid #1A1C30;
+}
+.m5-hlabel{} /* spacer */
+.m5-hcol{
+  display:flex;align-items:center;justify-content:center;gap:5px;
+  padding:0 8px;
+  border-left:1px solid #1A1C30;
+}
+.m5-hname{font-size:10px;color:#64748B;font-weight:600;white-space:nowrap;}
+
+/* Match rows — same grid */
+.m5-matches{flex:1;display:flex;flex-direction:column;gap:0;overflow:hidden;}
+.mr{
+  display:grid;
+  grid-template-columns:100px 1fr 1fr 1fr 1fr;
+  gap:0;
+  align-items:center;
+  padding:0;
+  border-bottom:1px solid rgba(255,255,255,0.04);
+  flex:1;
+}
+.mr:last-child{border-bottom:none;}
+.mr:hover{background:rgba(255,255,255,0.02);}
+
+/* Match label cell */
+.mn{
+  font-size:9px;color:#64748B;letter-spacing:1px;font-weight:700;
+  text-transform:uppercase;padding:0 12px;
+  white-space:nowrap;
+}
+
+/* Each ability column cell */
+.ma{
+  display:flex;align-items:center;justify-content:center;gap:5px;
+  padding:8px;
+  border-left:1px solid #1A1C30;
+  height:100%;
+}
+.mbw{width:50px;height:4px;background:#1A1C30;border-radius:2px;overflow:hidden;flex-shrink:0;}
+.mb{height:100%;border-radius:2px;}
+.mf{font-size:10px;font-weight:700;color:#fff;flex-shrink:0;white-space:nowrap;}
+.mp{font-size:13px;font-weight:800;flex-shrink:0;}
+.mu{font-size:11px;color:#fff;font-weight:700;white-space:nowrap;}
+
+/* ══════════════════════════════════════
+   BOTTOM LEFT — RANK COMPARISON
+   Fixed champion name cutoff + W symmetry
+══════════════════════════════════════ */
+.rank-body{flex:1;display:flex;flex-direction:column;padding:10px 12px;overflow:hidden;}
+.rank-sels{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-shrink:0;}
+
+/* Champion selector — wider to avoid cutoff */
+.csel-wrap{display:flex;align-items:center;gap:7px;flex:1;min-width:0;}
+.csel-ico{width:22px;height:22px;border-radius:5px;overflow:hidden;background:#141828;flex-shrink:0;}
+.csel-ico img{width:100%;height:100%;object-fit:cover;display:block;}
+.csel-wrap select{
+  flex:1;min-width:0;
+  background:rgba(139,92,246,0.08);border:1px solid rgba(139,92,246,0.25);
+  border-radius:8px;padding:5px 22px 5px 9px;
+  font-family:'Inter',sans-serif;font-size:11px;font-weight:700;
+  color:#8B5CF6;text-transform:uppercase;letter-spacing:0.5px;
+  outline:none;appearance:none;cursor:pointer;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.rsel-wrap{position:relative;flex-shrink:0;}
+.rsel-wrap select{
+  background:rgba(197,160,89,0.08);border:1px solid rgba(197,160,89,0.25);
+  border-radius:8px;padding:5px 22px 5px 9px;
+  font-family:'Inter',sans-serif;font-size:11px;font-weight:700;
+  color:#C5A059;text-transform:uppercase;letter-spacing:0.5px;
+  outline:none;appearance:none;cursor:pointer;
+}
+.csel-wrap{position:relative;}
+.csel-wrap::after{content:'▾';position:absolute;right:7px;top:50%;transform:translateY(-50%);font-size:9px;color:#8B5CF6;pointer-events:none;}
+.rsel-wrap::after{content:'▾';position:absolute;right:7px;top:50%;transform:translateY(-50%);font-size:9px;color:#C5A059;pointer-events:none;}
+
+/* 2×2 ability grid — ALL CARDS SAME STRUCTURE */
+.rank22{flex:1;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:8px;min-height:0;}
+.rabb{background:#141828;border:1px solid #1A1C30;border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;}
+.rabb:hover{border-color:#252840;}
+.rabh{display:flex;align-items:center;gap:7px;margin-bottom:8px;flex-shrink:0;}
+.rabn{font-size:12px;color:#94A3B8;font-weight:500;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+/* Bar rows — same for both skill and util */
+.rcr{display:flex;align-items:center;gap:7px;margin-bottom:5px;flex-shrink:0;}
+.rcl{font-size:11px;font-weight:700;width:34px;flex-shrink:0;color:#64748B;}
+.rbw{flex:1;height:5px;background:#1A1C30;border-radius:3px;overflow:hidden;}
+.rb{height:100%;border-radius:3px;transition:width 0.4s ease;}
+.rv{font-size:15px;font-weight:800;min-width:38px;text-align:right;flex-shrink:0;}
+.rdiff{font-size:9px;text-align:right;margin-top:auto;padding-top:4px;font-weight:700;letter-spacing:0.3px;}
+/* Unit suffix for util cards */
+.rv-unit{font-size:10px;font-weight:600;color:#94A3B8;margin-left:2px;}
+
+/* ══════════════════════════════════════
+   BOTTOM RIGHT — GLOBAL STATS + PRO
+══════════════════════════════════════ */
+/* Perfect 2×2 symmetric grid */
+.gg{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:8px;padding:10px 12px;flex:0 0 auto;}
+.gs{background:#141828;border:1px solid #1A1C30;border-radius:10px;padding:10px;display:flex;flex-direction:column;}
+.gs:hover{border-color:#252840;}
+.gs-top{display:flex;align-items:center;gap:7px;margin-bottom:4px;}
+.gs-cico{width:22px;height:22px;border-radius:5px;overflow:hidden;background:#0B0E18;flex-shrink:0;border:1px solid #1A1C30;}
+.gs-cico img{width:100%;height:100%;object-fit:cover;display:block;}
+.gc{font-size:13px;font-weight:700;color:#8B5CF6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ga{font-size:10px;color:#64748B;margin-bottom:4px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.gp{font-size:26px;font-weight:900;color:#fff;line-height:1;}
+.gl{font-size:9px;color:#64748B;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;margin-top:2px;}
+.gbw{height:3px;background:#1A1C30;border-radius:2px;margin-top:6px;overflow:hidden;flex-shrink:0;}
+.gbar{height:100%;border-radius:2px;}
+
+/* Pro Players */
+.probb{flex:1;padding:6px 12px 10px;border-top:1px solid #1A1C30;display:flex;flex-direction:column;overflow:hidden;}
+.proh{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;flex-shrink:0;}
+.prot{font-size:10px;font-weight:800;letter-spacing:2px;color:#C5A059;text-transform:uppercase;display:flex;align-items:center;gap:5px;}
+.prodot{width:5px;height:5px;border-radius:50%;background:#C5A059;}
+.prohint{font-size:10px;color:#64748B;}
+.prosw{position:relative;margin-bottom:6px;flex-shrink:0;}
+.prosw input{width:100%;background:#141828;border:1px solid #1A1C30;border-radius:7px;padding:6px 12px 6px 26px;font-size:11px;color:#fff;outline:none;font-family:'Inter',sans-serif;}
+.prosw input::placeholder{color:#64748B;}
+.prosw input:focus{border-color:#252840;}
+.prosw::before{content:'⌕';position:absolute;left:8px;top:50%;transform:translateY(-50%);font-size:14px;color:#64748B;pointer-events:none;}
+.pro-grid{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:5px;overflow:hidden;}
+.pror{display:flex;align-items:center;gap:7px;padding:6px 8px;border-radius:8px;background:#141828;border:1px solid #1A1C30;cursor:pointer;transition:all 0.15s;}
+.pror:hover{border-color:#252840;background:#1A1C2E;}
+.proav{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#8B5CF6,#C5A059);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;flex-shrink:0;}
+.proinfo{flex:1;min-width:0;}
+.pronm{font-size:12px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.protm{font-size:10px;color:#64748B;margin-top:1px;}
+.prosts{display:flex;gap:6px;flex-shrink:0;}
+.proab{display:flex;flex-direction:column;align-items:center;gap:2px;}
+.proabv{font-size:11px;font-weight:800;color:#22C55E;}
+.pronf{font-size:12px;color:#64748B;text-align:center;padding:10px;font-style:italic;grid-column:1/-1;}
+.prolg{font-size:9px;color:#64748B;text-align:center;margin-top:6px;padding-top:6px;border-top:1px solid #1A1C30;flex-shrink:0;}
+
+/* ── ADS ── */
+.ad-col{width:312px;flex-shrink:0;display:flex;flex-direction:column;gap:12px;align-self:stretch;}
+.ad-card{background:#0F1220;border:1px solid #1A1C30;border-radius:14px;overflow:hidden;flex-shrink:0;position:relative;}
+.ad-card::before,.ad-card::after{content:'';position:absolute;width:10px;height:10px;pointer-events:none;}
+.ad-card::before{top:0;left:0;border-top:1px solid rgba(197,160,89,0.35);border-left:1px solid rgba(197,160,89,0.35);border-radius:14px 0 0 0;}
+.ad-card::after{bottom:0;right:0;border-bottom:1px solid rgba(197,160,89,0.35);border-right:1px solid rgba(197,160,89,0.35);border-radius:0 0 14px 0;}
+.ad-head{padding:6px 12px;background:#0B0E18;border-bottom:1px solid #1A1C30;display:flex;align-items:center;justify-content:space-between;}
+.adhl{font-size:9px;font-weight:800;letter-spacing:2px;color:#64748B;text-transform:uppercase;}
+.adhsdk{font-size:9px;color:#64748B;}
+.ad-slot{width:100%;aspect-ratio:300/250;background:#0B0E18;display:flex;align-items:center;justify-content:center;}
+.ad-slot-sm{width:100%;aspect-ratio:300/100;background:#0B0E18;display:flex;align-items:center;justify-content:center;}
+.ad-ph{width:calc(100% - 18px);height:calc(100% - 14px);background:#141828;border:1px dashed rgba(255,255,255,0.07);border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;}
+.ad-ph span{font-size:14px;font-weight:700;color:#64748B;letter-spacing:1px;}
+.ad-ph small{font-size:10px;color:#64748B;opacity:0.5;}
+.ad-note{padding:10px 12px 12px;font-size:11px;color:#64748B;line-height:1.75;}
+.ad-note b{color:#94A3B8;}
+/* ad-flex defined in LAYOUT section above */
+.ad-flex::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at center,rgba(197,160,89,0.05) 0%,transparent 70%);
+}
+.ad-flex-logo{font-size:22px;position:relative;}
+.ad-flex-name{font-size:10px;letter-spacing:2.5px;color:#C5A059;text-transform:uppercase;font-weight:700;position:relative;}
+.ad-flex-ver{font-size:9px;color:#3A4060;letter-spacing:1px;position:relative;}
+
+.disc{flex-shrink:0;font-size:9px;color:#64748B;text-align:center;padding:2px 0;opacity:0.35;letter-spacing:0.3px;}
+
+/* ── MODAL ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:1000;display:none;align-items:center;justify-content:center;backdrop-filter:blur(6px);}
+.modal-overlay.open{display:flex;}
+.modal{background:#0F1220;border:1px solid #252840;border-radius:18px;width:460px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,0.7);}
+.mhead{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:#0B0E18;border-bottom:1px solid #1A1C30;}
+.mttl{font-size:13px;font-weight:800;letter-spacing:2.5px;color:#fff;text-transform:uppercase;}
+.mx{background:none;border:none;color:#64748B;font-size:16px;cursor:pointer;padding:3px 7px;border-radius:6px;transition:all 0.15s;}
+.mx:hover{color:#fff;background:rgba(255,255,255,0.06);}
+.mbody{padding:14px;}
+.sp{background:#0B0E18;border:1px solid #252840;border-radius:12px;padding:14px;margin-bottom:14px;position:relative;overflow:hidden;}
+.sp::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#C5A059,#8B5CF6,transparent);}
+.sptop{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.spbrand{display:flex;align-items:center;gap:8px;}
+.spcico{width:32px;height:32px;border-radius:7px;overflow:hidden;border:1px solid #252840;}
+.spcico img{width:100%;height:100%;object-fit:cover;display:block;}
+.spname{font-size:16px;font-weight:900;letter-spacing:3px;text-transform:uppercase;color:#fff;}
+.spchamp{font-size:10px;color:#8B5CF6;}
+.sppct{font-size:28px;font-weight:900;color:#22C55E;line-height:1;text-align:right;}
+.splbl{font-size:9px;color:#64748B;letter-spacing:1px;text-transform:uppercase;text-align:right;margin-top:2px;}
+.spar{display:flex;align-items:center;gap:9px;margin-bottom:7px;}
+.span-n{flex:1;font-size:13px;color:#94A3B8;font-weight:500;}
+.spbw{width:80px;height:4px;background:#1A1C30;border-radius:2px;overflow:hidden;}
+.spb{height:100%;border-radius:2px;}
+.sppv{font-size:14px;font-weight:800;min-width:36px;text-align:right;}
+.spfoot{display:flex;justify-content:space-between;padding-top:10px;border-top:1px solid #1A1C30;margin-top:4px;font-size:10px;color:#64748B;}
+.sopts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+.sopt{display:flex;align-items:center;gap:8px;padding:9px 12px;border:1px solid #1A1C30;border-radius:8px;cursor:pointer;background:#141828;transition:all 0.15s;}
+.sopt:hover{border-color:#252840;background:#1A1C2E;}
+.sopticon{font-size:15px;}
+.soptlbl{font-size:11px;font-weight:700;letter-spacing:1px;color:#94A3B8;text-transform:uppercase;}
+.scopy{width:100%;padding:9px;background:rgba(197,160,89,0.07);border:1px solid rgba(197,160,89,0.22);border-radius:8px;font-family:'Inter',sans-serif;font-size:11px;letter-spacing:2px;color:#C5A059;text-transform:uppercase;font-weight:800;cursor:pointer;transition:all 0.2s;}
+.scopy:hover{background:rgba(197,160,89,0.13);}
+.scopy.copied{background:rgba(34,197,94,0.08);border-color:rgba(34,197,94,0.25);color:#22C55E;}
+</style>
+</head>
+<body>
+<!-- VIEW SWITCHER -->
+<div class="view-switcher">
+  <button class="vs-btn" onclick="showView('overlay')">🎮 Overlay</button>
+  <button class="vs-btn active" onclick="showView('postgame')">📊 Post-Game</button>
+</div>
+
+<!-- OVERLAY PREVIEW SCREEN -->
+<div class="overlay-screen" id="overlayScreen">
+
+  <!-- ── HERO ── -->
+  <div class="ov-hero">
+    <div class="ov-hero-icon">🎯</div>
+    <h1 class="ov-hero-title">BULLSEYE</h1>
+    <p class="ov-hero-sub">Landed Skillshot Tracker</p>
+    <p class="ov-hero-desc">Track your ability accuracy in real time — for every champion, every match.</p>
+    <div class="ov-hero-tags">
+      <span class="ov-tag">League of Legends</span>
+      <span class="ov-tag">Overwolf Native</span>
+      <span class="ov-tag ov-tag-gold">Free · Ads</span>
+      <span class="ov-tag ov-tag-dim">Prototype</span>
+    </div>
+  </div>
+
+  <!-- ── TABS ── -->
+  <div class="ov-tabs">
+    <div class="ov-tab ov-tab-active" id="ovTabOverlay" onclick="switchOvTab('overlay')">In-Game Overlay</div>
+    <div class="ov-tab" id="ovTabPost" onclick="switchOvTab('post')">Post-Game</div>
+  </div>
+
+  <!-- ── TAB CONTENT ── -->
+  <div class="ov-tab-content" id="ovContentOverlay">
+    <div class="ov-tab-label">In-Game Overlay · Transparent · Never blocks the map</div>
+    <div class="ov-split">
+
+      <!-- LEFT: overlay panel -->
+      <div class="ov-split-left">
+        <div class="ov-panel" id="ovPanel">
+          <div class="ov-header">
+            <div class="ov-brand">
+              <div class="ov-logo">🎯</div>
+              <span class="ov-name">Bullseye</span>
+            </div>
+            <span class="ov-champ">Blitzcrank</span>
+          </div>
+          <div class="ov-abilities">
+            <div class="ov-ab"><div class="ov-key kq">Q</div><span class="ov-name-txt">Rocket Grab</span><span class="ov-frac">17/20</span><div class="ov-barw"><div class="ov-bar ov-bar-green" style="width:85%"></div></div><span class="ov-pct ov-green">85%</span></div>
+            <div class="ov-ab"><div class="ov-key kw">W</div><span class="ov-name-txt">Overdrive</span><span class="ov-used">8x used</span></div>
+            <div class="ov-ab"><div class="ov-key ke">E</div><span class="ov-name-txt">Power Fist</span><span class="ov-frac">15/20</span><div class="ov-barw"><div class="ov-bar ov-bar-green" style="width:75%"></div></div><span class="ov-pct ov-green">75%</span></div>
+            <div class="ov-ab"><div class="ov-key kr">R</div><span class="ov-name-txt">Static Field</span><span class="ov-frac">12/12</span><div class="ov-barw"><div class="ov-bar ov-bar-green" style="width:100%"></div></div><span class="ov-pct ov-green">100%</span></div>
+          </div>
+          <div class="ov-footer">
+            <span class="ov-footer-lbl">Current Match</span>
+            <div class="ov-toggle">Toggle <span class="ov-kbd">Alt+B</span></div>
+          </div>
+        </div>
+        <!-- Demo state buttons -->
+        <div class="ov-demo-row">
+          <button class="demo-btn active-demo" onclick="setDemo('normal')">Normal</button>
+          <button class="demo-btn" onclick="setDemo('bad')">Mala partida</button>
+          <button class="demo-btn" onclick="setDemo('minimized')">Minimizado</button>
+          <button class="demo-btn" onclick="setDemo('early')">Early game</button>
+        </div>
+      </div>
+
+      <!-- RIGHT: How it works -->
+      <div class="ov-split-right">
+        <div class="ov-how-title">How it works</div>
+        <p class="ov-how-desc">Bullseye runs silently while you play. It detects every ability cast and records whether it landed on an enemy champion — not minions, not walls.</p>
+        <ul class="ov-how-list">
+          <li>Damage skillshots → accuracy % (landed / cast)</li>
+          <li>Utility abilities like W → usage count only</li>
+          <li>Healing abilities → total healed shown</li>
+          <li>Toggle on/off with Alt+B anytime</li>
+          <li>100% transparent — never blocks gameplay</li>
+        </ul>
+        <div class="ov-color-legend">
+          <div class="ov-cl-item"><span class="ov-cl-dot" style="background:#22C55E"></span><span class="ov-cl-val" style="color:#22C55E">≥ 70%</span><span class="ov-cl-lbl">Good</span></div>
+          <div class="ov-cl-item"><span class="ov-cl-dot" style="background:#EAB308"></span><span class="ov-cl-val" style="color:#EAB308">40–69%</span><span class="ov-cl-lbl">Average</span></div>
+          <div class="ov-cl-item"><span class="ov-cl-dot" style="background:#EF4444"></span><span class="ov-cl-val" style="color:#EF4444">&lt; 40%</span><span class="ov-cl-lbl">Poor</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Post-Game tab hint -->
+  <div class="ov-tab-content" id="ovContentPost" style="display:none;">
+    <div class="ov-tab-label">Post-Game Screen · Appears automatically after the match ends</div>
+    <div style="text-align:center;padding:40px 20px;">
+      <div style="font-size:32px;margin-bottom:12px;">📊</div>
+      <div style="font-size:14px;font-weight:700;color:#fff;margin-bottom:8px;">Switch to Post-Game tab above</div>
+      <div style="font-size:12px;color:#64748B;">Click "📊 Post-Game" at the top to see the full post-game screen.</div>
+    </div>
+  </div>
+
+</div>
+
+<div class="app" id="app">
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <div class="tb-logo">🎯</div>
+  <span class="tb-brand">Bullseye</span>
+  <span class="tb-sub">Post-Game</span>
+  <div class="tb-div"></div>
+  <div class="tb-champ">
+    <div class="tb-cico"><img src="https://ddragon.leagueoflegends.com/cdn/14.24.1/img/champion/Blitzcrank.png" alt="" onerror="this.style.display='none'"></div>
+    <div>
+      <div class="tb-cname">Blitzcrank</div>
+      <div class="tb-crole">Support · Ranked Solo</div>
+    </div>
+  </div>
+  <div class="tb-right">
+    <div class="tb-result">Victory</div>
+    <div>
+      <div class="tb-player">MightyMagus</div>
+      <div class="tb-pdetail">Gold II · LAS · 28 min</div>
+    </div>
+  </div>
+</header>
+
+<div class="content">
+<div class="grid22">
+
+<!-- ╔══════════════╗
+     ║  THIS MATCH  ║ TOP LEFT
+     ╚══════════════╝ -->
+<div class="card">
+  <div class="ch"><div class="ct"><div class="cdot"></div>This Match</div><span class="cs">Blitzcrank</span></div>
+  <div class="tm-body">
+    <!-- Ability rows: flex:1, equal half -->
+    <div class="tm-abilities">
+      <div class="ab"><div class="key key-lg kq">Q</div><span class="an">Rocket Grab</span><span class="af">17/20</span><div class="abw"><div class="ab-bar bg" style="width:85%"></div></div><span class="ap pg">85%</span></div>
+      <div class="ab"><div class="key key-lg kw">W</div><span class="an">Overdrive</span><span class="au">8x used</span></div>
+      <div class="ab"><div class="key key-lg ke">E</div><span class="an">Power Fist</span><span class="af">15/20</span><div class="abw"><div class="ab-bar bg" style="width:75%"></div></div><span class="ap pg">75%</span></div>
+      <div class="ab"><div class="key key-lg kr">R</div><span class="an">Static Field</span><span class="af">12/12</span><div class="abw"><div class="ab-bar bg" style="width:100%"></div></div><span class="ap pg">100%</span></div>
+    </div>
+    <!-- Avg section: flex:1, equal half -->
+    <div class="tm-avg">
+      <div class="avg-lbl">Last 5 Matches — Average</div>
+      <div class="avg-rows">
+        <div class="avgr"><div class="key key-sm kq">Q</div><span class="avgn">Rocket Grab</span><div class="avgbw"><div class="avgb bg" style="width:74%"></div></div><span class="avgp pg">74%</span></div>
+        <div class="avgr"><div class="key key-sm kw">W</div><span class="avgn">Overdrive</span><span class="avgu">8.6x avg</span></div>
+        <div class="avgr"><div class="key key-sm ke">E</div><span class="avgn">Power Fist</span><div class="avgbw"><div class="avgb bg" style="width:76%"></div></div><span class="avgp pg">76%</span></div>
+        <div class="avgr"><div class="key key-sm kr">R</div><span class="avgn">Static Field</span><div class="avgbw"><div class="avgb bg" style="width:78%"></div></div><span class="avgp pg">78%</span></div>
+      </div>
+    </div>
+  </div>
+  <button class="sbtn" onclick="openShare()">📤 Share My Stats</button>
+</div>
+
+<!-- ╔═══════════════╗
+     ║  LAST 5 MATCHES  ║ TOP RIGHT
+     ╚═══════════════╝ -->
+<!-- TOP RIGHT: LAST 5 MATCHES -->
+<div class="card">
+  <div class="ch"><div class="ct"><div class="cdot"></div>Last 5 Matches — Per-Ability Accuracy</div></div>
+  <div class="m5-body">
+    <div class="m5-header">
+      <div class="m5-hlabel"></div>
+      <div class="m5-hcol"><div class="key key-sm kq">Q</div><span class="m5-hname">Rocket Grab</span></div>
+      <div class="m5-hcol"><div class="key key-sm kw">W</div><span class="m5-hname">Overdrive</span></div>
+      <div class="m5-hcol"><div class="key key-sm ke">E</div><span class="m5-hname">Power Fist</span></div>
+      <div class="m5-hcol"><div class="key key-sm kr">R</div><span class="m5-hname">Static Field</span></div>
+    </div>
+    <div class="m5-matches">
+      <div class="mr">
+        <div class="mn">Match 1</div>
+        <div class="ma"><div class="mbw"><div class="mb bg" style="width:83%"></div></div><span class="mf">80/96</span><span class="mp pg">83%</span></div>
+        <div class="ma"><span class="mu">12x</span></div>
+        <div class="ma"><div class="mbw"><div class="mb bg" style="width:78%"></div></div><span class="mf">18/23</span><span class="mp pg">78%</span></div>
+        <div class="ma"><div class="mbw"><div class="mb bg" style="width:100%"></div></div><span class="mf">14/14</span><span class="mp pg">100%</span></div>
+      </div>
+      <div class="mr">
+        <div class="mn">Match 2</div>
+        <div class="ma"><div class="mbw"><div class="mb by" style="width:58%"></div></div><span class="mf">52/90</span><span class="mp py">58%</span></div>
+        <div class="ma"><span class="mu">7x</span></div>
+        <div class="ma"><div class="mbw"><div class="mb by" style="width:62%"></div></div><span class="mf">13/21</span><span class="mp py">62%</span></div>
+        <div class="ma"><div class="mbw"><div class="mb by" style="width:67%"></div></div><span class="mf">8/12</span><span class="mp py">67%</span></div>
+      </div>
+      <div class="mr">
+        <div class="mn">Match 3</div>
+        <div class="ma"><div class="mbw"><div class="mb bg" style="width:75%"></div></div><span class="mf">69/92</span><span class="mp pg">75%</span></div>
+        <div class="ma"><span class="mu">10x</span></div>
+        <div class="ma"><div class="mbw"><div class="mb bg" style="width:88%"></div></div><span class="mf">22/25</span><span class="mp pg">88%</span></div>
+        <div class="ma"><div class="mbw"><div class="mb bg" style="width:82%"></div></div><span class="mf">11/13</span><span class="mp pg">82%</span></div>
+      </div>
+      <div class="mr">
+        <div class="mn">Match 4</div>
+        <div class="ma"><div class="mbw"><div class="mb" style="background:#EF4444;width:38%"></div></div><span class="mf">28/74</span><span class="mp pr">38%</span></div>
+        <div class="ma"><span class="mu">5x</span></div>
+        <div class="ma"><div class="mbw"><div class="mb by" style="width:55%"></div></div><span class="mf">11/20</span><span class="mp py">55%</span></div>
+        <div class="ma"><div class="mbw"><div class="mb by" style="width:50%"></div></div><span class="mf">6/12</span><span class="mp py">50%</span></div>
+      </div>
+      <div class="mr">
+        <div class="mn">Match 5</div>
+        <div class="ma"><div class="mbw"><div class="mb bg" style="width:78%"></div></div><span class="mf">72/92</span><span class="mp pg">78%</span></div>
+        <div class="ma"><span class="mu">9x</span></div>
+        <div class="ma"><div class="mbw"><div class="mb bg" style="width:87%"></div></div><span class="mf">20/23</span><span class="mp pg">87%</span></div>
+        <div class="ma"><div class="mbw"><div class="mb bg" style="width:92%"></div></div><span class="mf">11/12</span><span class="mp pg">92%</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ╔══════════════════════╗
+     ║  RANK COMPARISON     ║ BOTTOM LEFT
+     ╚══════════════════════╝ -->
+<div class="card">
+  <div class="ch"><div class="ct"><div class="cdot"></div>Your Accuracy vs Rank Average</div></div>
+  <div class="rank-body">
+    <div class="rank-sels">
+      <!-- Champion selector — full width, name won't cut off -->
+      <div class="csel-wrap">
+        <div class="csel-ico"><img id="cselIco" src="https://ddragon.leagueoflegends.com/cdn/14.24.1/img/champion/Blitzcrank.png" alt="" onerror="this.style.opacity='0'"></div>
+        <select id="champSel" onchange="updateRank()">
+          <option value="Blitzcrank">Blitzcrank</option>
+          <option value="Thresh">Thresh</option>
+          <option value="Pyke">Pyke</option>
+          <option value="Lux">Lux</option>
+          <option value="Ezreal">Ezreal</option>
+          <option value="Jinx">Jinx</option>
+          <option value="Xerath">Xerath</option>
+          <option value="Caitlyn">Caitlyn</option>
+          <option value="Ahri">Ahri</option>
+          <option value="Zed">Zed</option>
+          <option value="Yasuo">Yasuo</option>
+        </select>
+      </div>
+      <!-- Rank selector -->
+      <div class="rsel-wrap">
+        <select id="rankSel" onchange="updateRank()">
+          <option value="iron">Iron</option><option value="bronze">Bronze</option>
+          <option value="silver">Silver</option><option value="gold" selected>Gold</option>
+          <option value="platinum">Platinum</option><option value="emerald">Emerald</option>
+          <option value="diamond">Diamond</option><option value="master">Master</option>
+          <option value="grandmaster">Grandmaster</option><option value="challenger">Challenger</option>
+          <option value="pro">PRO 🏆</option>
+        </select>
+      </div>
+    </div>
+    <div class="rank22" id="rankContent"></div>
+  </div>
+</div>
+
+<!-- ╔══════════════════════╗
+     ║  GLOBAL STATS + PRO  ║ BOTTOM RIGHT
+     ╚══════════════════════╝ -->
+<div class="card">
+  <div class="ch"><div class="ct"><div class="cdot"></div>Global Community Stats</div></div>
+  <!-- Perfect 2×2 symmetric grid -->
+  <div class="gg">
+    <div class="gs">
+      <div class="gs-top"><div class="gs-cico"><img src="https://ddragon.leagueoflegends.com/cdn/14.24.1/img/champion/Blitzcrank.png" alt="" onerror="this.style.display='none'"></div><span class="gc">Blitzcrank</span></div>
+      <div class="ga">Q — Rocket Grab</div>
+      <div class="gp">40%</div><div class="gl">Global Avg</div>
+      <div class="gbw"><div class="gbar by" style="width:40%"></div></div>
+    </div>
+    <div class="gs">
+      <div class="gs-top"><div class="gs-cico"><img src="https://ddragon.leagueoflegends.com/cdn/14.24.1/img/champion/Thresh.png" alt="" onerror="this.style.display='none'"></div><span class="gc">Thresh</span></div>
+      <div class="ga">Q — Death Sentence</div>
+      <div class="gp">35%</div><div class="gl">Global Avg</div>
+      <div class="gbw"><div class="gbar by" style="width:35%"></div></div>
+    </div>
+    <div class="gs">
+      <div class="gs-top"><div class="gs-cico"><img src="https://ddragon.leagueoflegends.com/cdn/14.24.1/img/champion/Pyke.png" alt="" onerror="this.style.display='none'"></div><span class="gc">Pyke</span></div>
+      <div class="ga">Q — Bone Skewer</div>
+      <div class="gp">48%</div><div class="gl">Global Avg</div>
+      <div class="gbw"><div class="gbar by" style="width:48%"></div></div>
+    </div>
+    <div class="gs">
+      <div class="gs-top"><div class="gs-cico"><img src="https://ddragon.leagueoflegends.com/cdn/14.24.1/img/champion/Ezreal.png" alt="" onerror="this.style.display='none'"></div><span class="gc">Ezreal</span></div>
+      <div class="ga">Q — Mystic Shot</div>
+      <div class="gp">62%</div><div class="gl">Global Avg</div>
+      <div class="gbw"><div class="gbar bg" style="width:62%"></div></div>
+    </div>
+  </div>
+  <div class="probb">
+    <div class="proh"><div class="prot"><div class="prodot"></div>Pro Players</div><span class="prohint">No login required</span></div>
+    <div class="prosw"><input type="text" placeholder="Search: Faker, Keria, BeryL..." oninput="searchPro(this.value)"></div>
+    <div class="pro-grid" id="proList"></div>
+    <div class="prolg">Login with Riot to compare with any pro · Coming soon</div>
+  </div>
+</div>
+
+</div><!-- end grid22 -->
+
+<!-- ADS -->
+<div class="ad-col">
+  <div class="ad-card">
+    <div class="ad-head"><span class="adhl">Advertisement</span><span class="adhsdk">Overwolf Ads</span></div>
+    <div class="ad-slot"><div class="ad-ph"><span>300 × 250</span><small>Primary</small></div></div>
+  </div>
+  <div class="ad-card">
+    <div class="ad-head"><span class="adhl">Advertisement</span><span class="adhsdk">Overwolf Ads</span></div>
+    <div class="ad-slot-sm"><div class="ad-ph"><span>300 × 100</span><small>Secondary</small></div></div>
+  </div>
+  <div class="ad-card">
+    <div class="ad-note">Bullseye is <b>100% free</b>. Ads by Overwolf — <b>never during gameplay</b>.</div>
+  </div>
+  <div class="ad-flex">
+    <div class="ad-flex-logo">🎯</div>
+    <div class="ad-flex-name">Bullseye</div>
+    <div class="ad-flex-ver">v0.1 · Overwolf App</div>
+  </div>
+</div>
+
+</div><!-- end content -->
+<div class="disc">Bullseye isn't endorsed by Riot Games and doesn't reflect views of Riot Games, Inc. All associated properties are trademarks of Riot Games, Inc.</div>
+</div><!-- end app -->
+
+<!-- SHARE MODAL -->
+<div class="modal-overlay" id="shareModal">
+  <div class="modal">
+    <div class="mhead"><span class="mttl">📤 Share My Stats</span><button class="mx" onclick="closeShare()">✕</button></div>
+    <div class="mbody">
+      <div class="sp">
+        <div class="sptop">
+          <div class="spbrand">
+            <div class="spcico"><img src="https://ddragon.leagueoflegends.com/cdn/14.24.1/img/champion/Blitzcrank.png" alt="" onerror="this.style.display='none'"></div>
+            <div><div class="spname">BULLSEYE</div><div class="spchamp">Blitzcrank · Gold II</div></div>
+          </div>
+          <div><div class="sppct">85%</div><div class="splbl">Hook Acc</div></div>
+        </div>
+        <div class="spar"><div class="key key-sm kq">Q</div><span class="span-n">Rocket Grab</span><div class="spbw"><div class="spb bg" style="width:85%"></div></div><span class="sppv pg">85%</span></div>
+        <div class="spar"><div class="key key-sm ke">E</div><span class="span-n">Power Fist</span><div class="spbw"><div class="spb bg" style="width:75%"></div></div><span class="sppv pg">75%</span></div>
+        <div class="spar"><div class="key key-sm kr">R</div><span class="span-n">Static Field</span><div class="spbw"><div class="spb bg" style="width:100%"></div></div><span class="sppv pg">100%</span></div>
+        <div class="spfoot"><span>bullseye.gg</span><span>+43% vs Gold avg</span></div>
+      </div>
+      <div class="sopts">
+        <div class="sopt" onclick="shareX()"><span class="sopticon">🐦</span><span class="soptlbl">Twitter / X</span></div>
+        <div class="sopt" onclick="shareReddit()"><span class="sopticon">🟠</span><span class="soptlbl">Reddit</span></div>
+        <div class="sopt" onclick="shareDiscord()"><span class="sopticon">💬</span><span class="soptlbl">Discord</span></div>
+        <div class="sopt"><span class="sopticon">📸</span><span class="soptlbl">PNG · Soon</span></div>
+      </div>
+      <button class="scopy" id="copyBtn" onclick="copyText()">📋 Copy Share Text</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function switchOvTab(tab){
+  document.getElementById('ovContentOverlay').style.display = tab==='overlay'?'block':'none';
+  document.getElementById('ovContentPost').style.display   = tab==='post'?'block':'none';
+  document.getElementById('ovTabOverlay').className = 'ov-tab'+(tab==='overlay'?' ov-tab-active':'');
+  document.getElementById('ovTabPost').className    = 'ov-tab'+(tab==='post'?' ov-tab-active':'');
+}
+
+// ── VIEW SWITCHER ──
+function showView(view){
+  const pg=document.getElementById('app');
+  const ov=document.getElementById('overlayScreen');
+  const btns=document.querySelectorAll('.vs-btn');
+  if(view==='overlay'){
+    pg.style.display='none';ov.classList.add('visible');
+    btns[0].classList.add('active');btns[1].classList.remove('active');
+  } else {
+    pg.style.display='flex';ov.classList.remove('visible');
+    btns[1].classList.add('active');btns[0].classList.remove('active');
+    scaleApp();
+  }
+}
+
+// ── OVERLAY DEMOS ──
+const demos={
+  normal:{abilities:[
+    {key:'Q',cls:'kq',name:'Rocket Grab',frac:'17/20',bar:85,pct:'85%',pctCls:'ov-green',barCls:'ov-bar-green'},
+    {key:'W',cls:'kw',name:'Overdrive',used:'8x used'},
+    {key:'E',cls:'ke',name:'Power Fist',frac:'15/20',bar:75,pct:'75%',pctCls:'ov-green',barCls:'ov-bar-green'},
+    {key:'R',cls:'kr',name:'Static Field',frac:'12/12',bar:100,pct:'100%',pctCls:'ov-green',barCls:'ov-bar-green'},
+  ]},
+  bad:{abilities:[
+    {key:'Q',cls:'kq',name:'Rocket Grab',frac:'8/26',bar:31,pct:'31%',pctCls:'ov-red',barCls:'ov-bar-red'},
+    {key:'W',cls:'kw',name:'Overdrive',used:'3x used'},
+    {key:'E',cls:'ke',name:'Power Fist',frac:'9/18',bar:50,pct:'50%',pctCls:'ov-yellow',barCls:'ov-bar-yellow'},
+    {key:'R',cls:'kr',name:'Static Field',frac:'3/6',bar:50,pct:'50%',pctCls:'ov-yellow',barCls:'ov-bar-yellow'},
+  ]},
+  early:{abilities:[
+    {key:'Q',cls:'kq',name:'Rocket Grab',frac:'2/3',bar:67,pct:'67%',pctCls:'ov-yellow',barCls:'ov-bar-yellow'},
+    {key:'W',cls:'kw',name:'Overdrive',used:'1x used'},
+    {key:'E',cls:'ke',name:'Power Fist',frac:'2/2',bar:100,pct:'100%',pctCls:'ov-green',barCls:'ov-bar-green'},
+    {key:'R',cls:'kr',name:'Static Field',frac:'0/0',bar:0,pct:'—',pctCls:'',barCls:''},
+  ]}
+};
+function renderOverlay(data){
+  document.querySelector('.ov-abilities').innerHTML=data.abilities.map(a=>{
+    if(a.used)return`<div class="ov-ab"><div class="ov-key ${a.cls}">${a.key}</div><span class="ov-name-txt">${a.name}</span><span class="ov-used">${a.used}</span></div>`;
+    return`<div class="ov-ab"><div class="ov-key ${a.cls}">${a.key}</div><span class="ov-name-txt">${a.name}</span><span class="ov-frac">${a.frac}</span><div class="ov-barw"><div class="ov-bar ${a.barCls}" style="width:${a.bar}%"></div></div><span class="ov-pct ${a.pctCls}">${a.pct}</span></div>`;
+  }).join('');
+}
+function setDemo(type){
+  document.querySelectorAll('.demo-btn').forEach(b=>b.classList.remove('active-demo'));
+  event.target.classList.add('active-demo');
+  const panel=document.getElementById('ovPanel');
+  if(type==='minimized'){panel.classList.add('minimized');return;}
+  panel.classList.remove('minimized');
+  renderOverlay(demos[type]||demos.normal);
+}
+const s=document.createElement('style');
+s.textContent='.ov-bar-red{background:#EF4444;}';
+document.head.appendChild(s);
+
+// ── SCALING ──
+function scaleApp(){
+  const s=Math.min(window.innerWidth/1920,window.innerHeight/1080);
+  const app=document.getElementById('app');
+  app.style.transform=`scale(${s})`;
+  app.style.marginTop=Math.max(0,(window.innerHeight-1080*s)/2)+'px';
+  app.style.marginLeft=Math.max(0,(window.innerWidth-1920*s)/2)+'px';
+}
+window.addEventListener('resize',scaleApp);
+scaleApp();
+
+// ── CHAMPION DATA ──
+const D='https://ddragon.leagueoflegends.com/cdn/14.24.1/img';
+const champions={
+  Blitzcrank:{spells:[
+    {s:'Q',n:'Rocket Grab',  cls:'kq',t:'skill',me:85, r:{iron:18,bronze:24,silver:30,gold:38,platinum:44,emerald:49,diamond:52,master:58,grandmaster:63,challenger:68,pro:76}},
+    {s:'W',n:'Overdrive',    cls:'kw',t:'util', me:8,  r:{iron:5,bronze:6,silver:7,gold:8,platinum:9,emerald:10,diamond:10,master:11,grandmaster:11,challenger:12,pro:13}},
+    {s:'E',n:'Power Fist',   cls:'ke',t:'skill',me:75, r:{iron:30,bronze:40,silver:50,gold:58,platinum:63,emerald:67,diamond:70,master:74,grandmaster:77,challenger:80,pro:87}},
+    {s:'R',n:'Static Field', cls:'kr',t:'skill',me:100,r:{iron:55,bronze:62,silver:68,gold:74,platinum:78,emerald:81,diamond:84,master:87,grandmaster:89,challenger:91,pro:95}},
+  ]},
+  Thresh:{spells:[
+    {s:'Q',n:'Death Sentence',cls:'kq',t:'skill',me:62,r:{iron:15,bronze:20,silver:26,gold:33,platinum:39,emerald:43,diamond:47,master:53,grandmaster:57,challenger:62,pro:70}},
+    {s:'W',n:'Dark Passage',  cls:'kw',t:'util', me:6, r:{iron:3,bronze:4,silver:5,gold:6,platinum:7,emerald:7,diamond:8,master:8,grandmaster:9,challenger:9,pro:11}},
+    {s:'E',n:'Flay',          cls:'ke',t:'skill',me:70,r:{iron:40,bronze:48,silver:56,gold:63,platinum:68,emerald:71,diamond:74,master:77,grandmaster:79,challenger:82,pro:88}},
+    {s:'R',n:'The Box',       cls:'kr',t:'skill',me:85,r:{iron:50,bronze:58,silver:65,gold:72,platinum:76,emerald:79,diamond:82,master:85,grandmaster:87,challenger:90,pro:94}},
+  ]},
+  Pyke:{spells:[
+    {s:'Q',n:'Bone Skewer',     cls:'kq',t:'skill',me:58,r:{iron:18,bronze:24,silver:31,gold:38,platinum:44,emerald:48,diamond:52,master:57,grandmaster:61,challenger:65,pro:73}},
+    {s:'W',n:'Ghostwater Dive', cls:'kw',t:'util', me:7, r:{iron:4,bronze:5,silver:6,gold:7,platinum:8,emerald:8,diamond:9,master:9,grandmaster:10,challenger:10,pro:12}},
+    {s:'E',n:'Phantom Undertow',cls:'ke',t:'skill',me:65,r:{iron:35,bronze:44,silver:52,gold:60,platinum:65,emerald:69,diamond:72,master:75,grandmaster:78,challenger:81,pro:87}},
+    {s:'R',n:'Death From Below',cls:'kr',t:'skill',me:80,r:{iron:45,bronze:55,silver:63,gold:70,platinum:74,emerald:77,diamond:80,master:83,grandmaster:85,challenger:87,pro:92}},
+  ]},
+  Lux:{spells:[
+    {s:'Q',n:'Light Binding',     cls:'kq',t:'skill',me:55,r:{iron:20,bronze:28,silver:36,gold:43,platinum:49,emerald:53,diamond:57,master:61,grandmaster:65,challenger:69,pro:77}},
+    {s:'W',n:'Prismatic Barrier', cls:'kw',t:'util', me:5, r:{iron:3,bronze:4,silver:5,gold:5,platinum:6,emerald:6,diamond:7,master:7,grandmaster:8,challenger:8,pro:10}},
+    {s:'E',n:'Lucent Singularity',cls:'ke',t:'skill',me:72,r:{iron:36,bronze:46,silver:56,gold:63,platinum:68,emerald:72,diamond:75,master:78,grandmaster:80,challenger:83,pro:89}},
+    {s:'R',n:'Final Spark',       cls:'kr',t:'skill',me:80,r:{iron:45,bronze:55,silver:64,gold:70,platinum:74,emerald:77,diamond:80,master:83,grandmaster:85,challenger:87,pro:92}},
+  ]},
+  Ezreal:{spells:[
+    {s:'Q',n:'Mystic Shot',     cls:'kq',t:'skill',me:68,r:{iron:30,bronze:38,silver:46,gold:53,platinum:58,emerald:62,diamond:66,master:70,grandmaster:73,challenger:76,pro:83}},
+    {s:'W',n:'Essence Flux',    cls:'kw',t:'skill',me:52,r:{iron:22,bronze:30,silver:38,gold:46,platinum:51,emerald:55,diamond:59,master:63,grandmaster:66,challenger:69,pro:76}},
+    {s:'E',n:'Arcane Shift',    cls:'ke',t:'util', me:8, r:{iron:5,bronze:6,silver:7,gold:8,platinum:9,emerald:9,diamond:10,master:10,grandmaster:11,challenger:11,pro:13}},
+    {s:'R',n:'Trueshot Barrage',cls:'kr',t:'skill',me:72,r:{iron:35,bronze:45,silver:55,gold:63,platinum:68,emerald:72,diamond:75,master:78,grandmaster:80,challenger:83,pro:89}},
+  ]},
+  Jinx:{spells:[
+    {s:'Q',n:'Switcheroo!',            cls:'kq',t:'util', me:0, r:{iron:0,bronze:0,silver:0,gold:0,platinum:0,emerald:0,diamond:0,master:0,grandmaster:0,challenger:0,pro:0}},
+    {s:'W',n:'Zap!',                   cls:'kw',t:'skill',me:48,r:{iron:22,bronze:29,silver:36,gold:42,platinum:47,emerald:51,diamond:55,master:59,grandmaster:62,challenger:65,pro:73}},
+    {s:'E',n:'Flame Chompers!',        cls:'ke',t:'skill',me:60,r:{iron:30,bronze:38,silver:46,gold:52,platinum:57,emerald:61,diamond:65,master:68,grandmaster:71,challenger:74,pro:81}},
+    {s:'R',n:'Super Mega Death Rocket',cls:'kr',t:'skill',me:78,r:{iron:30,bronze:40,silver:51,gold:59,platinum:64,emerald:68,diamond:72,master:76,grandmaster:79,challenger:82,pro:88}},
+  ]},
+  Xerath:{spells:[
+    {s:'Q',n:'Arcanopulse',       cls:'kq',t:'skill',me:62,r:{iron:25,bronze:33,silver:41,gold:49,platinum:55,emerald:59,diamond:63,master:67,grandmaster:70,challenger:73,pro:80}},
+    {s:'W',n:'Eye of Destruction',cls:'kw',t:'skill',me:55,r:{iron:22,bronze:30,silver:38,gold:46,platinum:52,emerald:56,diamond:60,master:64,grandmaster:67,challenger:70,pro:77}},
+    {s:'E',n:'Shocking Orb',      cls:'ke',t:'skill',me:48,r:{iron:18,bronze:25,silver:33,gold:41,platinum:46,emerald:50,diamond:54,master:58,grandmaster:61,challenger:64,pro:72}},
+    {s:'R',n:'Rite of the Arcane',cls:'kr',t:'skill',me:70,r:{iron:30,bronze:40,silver:50,gold:58,platinum:63,emerald:67,diamond:71,master:75,grandmaster:78,challenger:81,pro:87}},
+  ]},
+  Caitlyn:{spells:[
+    {s:'Q',n:'Piltover Peacemaker',cls:'kq',t:'skill',me:70,r:{iron:30,bronze:40,silver:50,gold:58,platinum:63,emerald:67,diamond:71,master:75,grandmaster:78,challenger:81,pro:87}},
+    {s:'W',n:'Yordle Snap Trap',   cls:'kw',t:'util', me:5, r:{iron:3,bronze:4,silver:5,gold:5,platinum:6,emerald:6,diamond:7,master:7,grandmaster:8,challenger:8,pro:10}},
+    {s:'E',n:'90 Caliber Net',     cls:'ke',t:'skill',me:65,r:{iron:35,bronze:44,silver:53,gold:61,platinum:66,emerald:70,diamond:73,master:76,grandmaster:79,challenger:82,pro:88}},
+    {s:'R',n:'Ace in the Hole',    cls:'kr',t:'skill',me:88,r:{iron:45,bronze:56,silver:65,gold:72,platinum:76,emerald:79,diamond:82,master:85,grandmaster:87,challenger:89,pro:94}},
+  ]},
+  Ahri:{spells:[
+    {s:'Q',n:'Orb of Deception',cls:'kq',t:'skill',me:72,r:{iron:35,bronze:44,silver:53,gold:61,platinum:66,emerald:70,diamond:73,master:77,grandmaster:80,challenger:83,pro:89}},
+    {s:'W',n:'Fox-Fire',        cls:'kw',t:'util', me:0, r:{iron:0,bronze:0,silver:0,gold:0,platinum:0,emerald:0,diamond:0,master:0,grandmaster:0,challenger:0,pro:0}},
+    {s:'E',n:'Charm',           cls:'ke',t:'skill',me:58,r:{iron:22,bronze:30,silver:38,gold:46,platinum:52,emerald:56,diamond:60,master:64,grandmaster:67,challenger:70,pro:77}},
+    {s:'R',n:'Spirit Rush',     cls:'kr',t:'util', me:9, r:{iron:5,bronze:6,silver:7,gold:8,platinum:9,emerald:10,diamond:10,master:11,grandmaster:12,challenger:12,pro:14}},
+  ]},
+  Zed:{spells:[
+    {s:'Q',n:'Razor Shuriken',cls:'kq',t:'skill',me:68,r:{iron:30,bronze:38,silver:46,gold:54,platinum:59,emerald:63,diamond:67,master:71,grandmaster:74,challenger:77,pro:84}},
+    {s:'W',n:'Living Shadow',  cls:'kw',t:'util', me:8, r:{iron:5,bronze:6,silver:7,gold:8,platinum:9,emerald:9,diamond:10,master:10,grandmaster:11,challenger:11,pro:13}},
+    {s:'E',n:'Shadow Slash',   cls:'ke',t:'skill',me:75,r:{iron:40,bronze:50,silver:59,gold:66,platinum:71,emerald:74,diamond:77,master:80,grandmaster:82,challenger:84,pro:90}},
+    {s:'R',n:'Death Mark',     cls:'kr',t:'util', me:7, r:{iron:4,bronze:5,silver:6,gold:7,platinum:8,emerald:8,diamond:9,master:9,grandmaster:10,challenger:10,pro:12}},
+  ]},
+  Yasuo:{spells:[
+    {s:'Q',n:'Steel Tempest',  cls:'kq',t:'skill',me:72,r:{iron:35,bronze:44,silver:53,gold:61,platinum:66,emerald:70,diamond:74,master:77,grandmaster:80,challenger:83,pro:89}},
+    {s:'W',n:'Wind Wall',      cls:'kw',t:'util', me:5, r:{iron:3,bronze:4,silver:4,gold:5,platinum:5,emerald:6,diamond:6,master:7,grandmaster:7,challenger:8,pro:9}},
+    {s:'E',n:'Sweeping Blade', cls:'ke',t:'util', me:22,r:{iron:15,bronze:18,silver:20,gold:22,platinum:24,emerald:25,diamond:26,master:28,grandmaster:29,challenger:30,pro:34}},
+    {s:'R',n:'Last Breath',    cls:'kr',t:'util', me:4, r:{iron:2,bronze:3,silver:3,gold:4,platinum:4,emerald:5,diamond:5,master:5,grandmaster:6,challenger:6,pro:7}},
+  ]},
+};
+
+const rColors={iron:'#8B6A5A',bronze:'#CD7F32',silver:'#A8A9AD',gold:'#FFD700',platinum:'#00D4AA',emerald:'#4ADE80',diamond:'#60A5FA',master:'#A855F7',grandmaster:'#EF4444',challenger:'#C5A059',pro:'#FF6B35'};
+const rLabels={iron:'Iron',bronze:'Bronze',silver:'Silver',gold:'Gold',platinum:'Platinum',emerald:'Emerald',diamond:'Diamond',master:'Master',grandmaster:'Grandmaster',challenger:'Challenger',pro:'PRO'};
+
+function pColor(v){return v>=70?'#22C55E':v>=40?'#EAB308':'#EF4444';}
+
+function updateRank(){
+  const champ=document.getElementById('champSel').value;
+  const rank=document.getElementById('rankSel').value;
+  const data=champions[champ];
+  const rc=rColors[rank], rl=rLabels[rank];
+
+  // Update icon
+  const ico=document.getElementById('cselIco');
+  if(ico){ico.style.opacity='1';ico.src=`${D}/champion/${champ}.png`;ico.onerror=()=>ico.style.opacity='0';}
+
+  document.getElementById('rankContent').innerHTML=data.spells.map(sp=>{
+    const ra=sp.r[rank];
+
+    if(sp.t==='util'){
+      // Utility: show bar proportional to max(me,ra), same card structure as skill
+      const maxVal=Math.max(sp.me,ra,1);
+      const meW=Math.round((sp.me/maxVal)*100);
+      const raW=Math.round((ra/maxVal)*100);
+      const diff=sp.me-ra, up=diff>=0;
+      const diffTxt= diff===0
+        ? `= Same as ${rl} avg`
+        : `${up?'▲ +':'▼ '}${Math.abs(diff)}x ${up?'above':'below'} ${rl} avg`;
+      return `<div class="rabb">
+        <div class="rabh"><div class="key key-md ${sp.cls}">${sp.s}</div><span class="rabn">${sp.n}</span></div>
+        <div class="rcr">
+          <span class="rcl" style="color:#22C55E">You</span>
+          <div class="rbw"><div class="rb" style="width:${meW}%;background:#94A3B8"></div></div>
+          <span class="rv" style="color:#fff">${sp.me}<span class="rv-unit">x</span></span>
+        </div>
+        <div class="rcr">
+          <span class="rcl" style="color:${rc}">${rl}</span>
+          <div class="rbw"><div class="rb" style="width:${raW}%;background:${rc}"></div></div>
+          <span class="rv" style="color:${rc}">${ra}<span class="rv-unit">x</span></span>
+        </div>
+        <div class="rdiff" style="color:${up?'#22C55E':diff===0?'#64748B':'#EF4444'}">${diffTxt}</div>
+      </div>`;
+    }
+
+    // Skill: accuracy %
+    const my=sp.me, diff=my-ra, up=diff>=0, mc=pColor(my);
+    return `<div class="rabb">
+      <div class="rabh"><div class="key key-md ${sp.cls}">${sp.s}</div><span class="rabn">${sp.n}</span></div>
+      <div class="rcr">
+        <span class="rcl" style="color:#22C55E">You</span>
+        <div class="rbw"><div class="rb" style="width:${my}%;background:${mc}"></div></div>
+        <span class="rv" style="color:${mc}">${my}%</span>
+      </div>
+      <div class="rcr">
+        <span class="rcl" style="color:${rc}">${rl}</span>
+        <div class="rbw"><div class="rb" style="width:${ra}%;background:${rc}"></div></div>
+        <span class="rv" style="color:${rc}">${ra}%</span>
+      </div>
+      <div class="rdiff" style="color:${up?'#22C55E':'#EF4444'}">
+        ${up?'▲ +':'▼ '}${Math.abs(diff)}% ${up?'above':'below'} ${rl} avg
+      </div>
+    </div>`;
+  }).join('');
+}
+updateRank();
+
+// ── PRO PLAYERS ──
+const pros=[
+  {n:'Faker',t:'T1',  r:'KR',a:'F',q:78,e:91,rr:97},
+  {n:'BeryL',t:'DRX', r:'KR',a:'B',q:82,e:88,rr:95},
+  {n:'Keria',t:'T1',  r:'KR',a:'K',q:85,e:93,rr:98},
+  {n:'Caps', t:'G2',  r:'EU',a:'C',q:72,e:86,rr:95},
+];
+function pH(p){
+  return`<div class="pror"><div class="proav">${p.a}</div><div class="proinfo"><div class="pronm">${p.n}</div><div class="protm">${p.t} · ${p.r}</div></div><div class="prosts"><div class="proab"><div class="key key-sm kq">Q</div><span class="proabv">${p.q}%</span></div><div class="proab"><div class="key key-sm ke">E</div><span class="proabv">${p.e}%</span></div><div class="proab"><div class="key key-sm kr">R</div><span class="proabv">${p.rr}%</span></div></div></div>`;
+}
+function searchPro(q){
+  const L=document.getElementById('proList');
+  if(!q.trim()){L.innerHTML=pros.map(pH).join('');return;}
+  const f=pros.filter(p=>p.n.toLowerCase().includes(q.toLowerCase())||p.t.toLowerCase().includes(q.toLowerCase()));
+  L.innerHTML=f.length?f.map(pH).join(''):`<div class="pronf">No pro found for "${q}"</div>`;
+}
+document.getElementById('proList').innerHTML=pros.map(pH).join('');
+
+// ── SHARE ──
+function openShare(){document.getElementById('shareModal').classList.add('open');}
+function closeShare(){document.getElementById('shareModal').classList.remove('open');}
+document.getElementById('shareModal').addEventListener('click',e=>{if(e.target===document.getElementById('shareModal'))closeShare();});
+const txt=`🎯 Blitzcrank accuracy tracked with Bullseye!\n\nQ (Rocket Grab): 17/20 — 85%\nE (Power Fist): 15/20 — 75%\nR (Static Field): 12/12 — 100%\n\n+43% above Gold avg 📈\n\n#LeagueOfLegends #Bullseye`;
+function shareX(){window.open('https://twitter.com/intent/tweet?text='+encodeURIComponent(txt),'_blank');}
+function shareReddit(){window.open('https://reddit.com/submit?text='+encodeURIComponent(txt),'_blank');}
+function shareDiscord(){navigator.clipboard.writeText(txt).then(()=>alert('Copied! Paste in Discord.'));}
+function copyText(){
+  const b=document.getElementById('copyBtn');
+  navigator.clipboard.writeText(txt).then(()=>{
+    b.textContent='✅ Copied!';b.classList.add('copied');
+    setTimeout(()=>{b.textContent='📋 Copy Share Text';b.classList.remove('copied');},2000);
+  });
+}
+</script>
+</body>
+</html>
